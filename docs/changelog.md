@@ -20,6 +20,7 @@ Tất cả các thay đổi đáng chú ý đối với project LingoFlow đư�
 - Placeholder cho tính năng AI suggestions (Google Gemini API in dependencies)
 - Motion library cho smooth animations (placeholder)
 - Express.js dependency cho backend (future-proofing)
+- Thêm hệ thống đăng nhập/đăng ký cục bộ với LocalStorage cho dữ liệu người dùng riêng
 
 ### [PLANNED]
 

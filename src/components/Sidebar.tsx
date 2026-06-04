@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
-  const { activeTab, setActiveTab, words } = useApp();
+  const { activeTab, setActiveTab, words, currentUser } = useApp();
 
   const menuItems = [
     { id: 'dashboard' as TabType, label: 'Bảng điều khiển', icon: LayoutDashboard },
@@ -84,7 +84,10 @@ export const Sidebar: React.FC = () => {
             <User className="w-5 h-5" />
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">Quốc Anh</p>
+            <p className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">{currentUser?.displayName ?? 'Người dùng'}</p>
+            <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5 truncate max-w-[180px]">
+              {currentUser?.email ?? 'Chưa đăng nhập'}
+            </p>
             <p className="text-3xs font-medium text-emerald-600 dark:text-emerald-400 mt-0.5">
               Cấp độ: {getLevel(learnedCount)}
             </p>

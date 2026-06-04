@@ -33,4 +33,12 @@ export interface AppSettings {
   dailyGoal: number; // Số từ cần học mỗi ngày
 }
 
+export interface User {
+  id: string;
+  email: string;
+  displayName: string;
+  passwordHash: string;
+  createdAt: string;
+}
+
 export type TabType = 'dashboard' | 'vocabulary' | 'flashcard' | 'quiz' | 'stats' | 'settings';

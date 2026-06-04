@@ -1,8 +1,19 @@
-import { Word, QuizAttempt, AppSettings } from '../types';
+import { Word, QuizAttempt, AppSettings, User } from '../types';
 
-const WORDS_KEY = 'lingoflow_words';
-const ATTEMPTS_KEY = 'lingoflow_attempts';
-const SETTINGS_KEY = 'lingoflow_settings';
+const WORDS_KEY_BASE = 'lingoflow_words';
+const ATTEMPTS_KEY_BASE = 'lingoflow_attempts';
+const SETTINGS_KEY_BASE = 'lingoflow_settings';
+const USERS_KEY = 'lingoflow_users';
+const CURRENT_USER_KEY = 'lingoflow_current_user';
+
+const getNamespacedKey = (base: string, userId?: string) => {
+  const id = userId?.trim() || 'default';
+  return `${base}_${id}`;
+};
+
+const hashPassword = (password: string) => {
+  return btoa(unescape(encodeURIComponent(password)));
+};
 
 export const INITIAL_WORDS: Word[] = [
   {
@@ -125,7 +136,6 @@ export const INITIAL_WORDS: Word[] = [
     nextReviewDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
     createdAt: new Date().toISOString(),
   },
-  // Bổ sung các từ chủ đề khác để phong phú
   {
     id: 'resilience',
     word: 'Resilience',
@@ -203,47 +213,151 @@ export const DEFAULT_SETTINGS: AppSettings = {
   dailyGoal: 5
 };
 
-export const getWords = (): Word[] => {
-  const data = localStorage.getItem(WORDS_KEY);
+export const getUsers = (): User[] => {
+  const data = localStorage.getItem(USERS_KEY);
   if (!data) {
-    localStorage.setItem(WORDS_KEY, JSON.stringify(INITIAL_WORDS));
+    return [];
+  }
+  return JSON.parse(data);
+};
+
+export const saveUsers = (users: User[]): void => {
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+};
+
+export const getCurrentUserId = (): string | null => {
+  return localStorage.getItem(CURRENT_USER_KEY);
+};
+
+export const saveCurrentUserId = (userId: string | null): void => {
+  if (userId) {
+    localStorage.setItem(CURRENT_USER_KEY, userId);
+  } else {
+    localStorage.removeItem(CURRENT_USER_KEY);
+  }
+};
+
+export const clearCurrentUser = (): void => {
+  localStorage.removeItem(CURRENT_USER_KEY);
+};
+
+export const getUserById = (userId: string): User | null => {
+  const users = getUsers();
+  const found = users.find((user) => user.id === userId);
+  return found ?? null;
+};
+
+export const getWords = (userId?: string): Word[] => {
+  const key = getNamespacedKey(WORDS_KEY_BASE, userId);
+  const data = localStorage.getItem(key);
+  if (!data) {
+    localStorage.setItem(key, JSON.stringify(INITIAL_WORDS));
     return INITIAL_WORDS;
   }
   return JSON.parse(data);
 };
 
-export const saveWords = (words: Word[]): void => {
-  localStorage.setItem(WORDS_KEY, JSON.stringify(words));
+export const saveWords = (words: Word[], userId?: string): void => {
+  const key = getNamespacedKey(WORDS_KEY_BASE, userId);
+  localStorage.setItem(key, JSON.stringify(words));
 };
 
-export const getAttempts = (): QuizAttempt[] => {
-  const data = localStorage.getItem(ATTEMPTS_KEY);
+export const getAttempts = (userId?: string): QuizAttempt[] => {
+  const key = getNamespacedKey(ATTEMPTS_KEY_BASE, userId);
+  const data = localStorage.getItem(key);
   if (!data) {
-    localStorage.setItem(ATTEMPTS_KEY, JSON.stringify(INITIAL_ATTEMPTS));
+    localStorage.setItem(key, JSON.stringify(INITIAL_ATTEMPTS));
     return INITIAL_ATTEMPTS;
   }
   return JSON.parse(data);
 };
 
-export const saveAttempts = (attempts: QuizAttempt[]): void => {
-  localStorage.setItem(ATTEMPTS_KEY, JSON.stringify(attempts));
+export const saveAttempts = (attempts: QuizAttempt[], userId?: string): void => {
+  const key = getNamespacedKey(ATTEMPTS_KEY_BASE, userId);
+  localStorage.setItem(key, JSON.stringify(attempts));
 };
 
-export const getSettings = (): AppSettings => {
-  const data = localStorage.getItem(SETTINGS_KEY);
+export const getSettings = (userId?: string): AppSettings => {
+  const key = getNamespacedKey(SETTINGS_KEY_BASE, userId);
+  const data = localStorage.getItem(key);
   if (!data) {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(DEFAULT_SETTINGS));
+    localStorage.setItem(key, JSON.stringify(DEFAULT_SETTINGS));
     return DEFAULT_SETTINGS;
   }
   return JSON.parse(data);
 };
 
-export const saveSettings = (settings: AppSettings): void => {
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+export const saveSettings = (settings: AppSettings, userId?: string): void => {
+  const key = getNamespacedKey(SETTINGS_KEY_BASE, userId);
+  localStorage.setItem(key, JSON.stringify(settings));
 };
 
-export const clearLocalStorage = (): void => {
-  localStorage.removeItem(WORDS_KEY);
-  localStorage.removeItem(ATTEMPTS_KEY);
-  localStorage.removeItem(SETTINGS_KEY);
+export const clearLocalStorage = (userId?: string): void => {
+  if (userId) {
+    localStorage.removeItem(getNamespacedKey(WORDS_KEY_BASE, userId));
+    localStorage.removeItem(getNamespacedKey(ATTEMPTS_KEY_BASE, userId));
+    localStorage.removeItem(getNamespacedKey(SETTINGS_KEY_BASE, userId));
+    return;
+  }
+  localStorage.removeItem(getNamespacedKey(WORDS_KEY_BASE, 'default'));
+  localStorage.removeItem(getNamespacedKey(ATTEMPTS_KEY_BASE, 'default'));
+  localStorage.removeItem(getNamespacedKey(SETTINGS_KEY_BASE, 'default'));
+};
+
+export const registerUser = (
+  email: string,
+  password: string,
+  displayName?: string
+): { success: boolean; message: string; user?: User } => {
+  const normalizedEmail = email.trim().toLowerCase();
+  const users = getUsers();
+
+  if (!normalizedEmail || !password) {
+    return { success: false, message: 'Vui lòng nhập email và mật khẩu hợp lệ.' };
+  }
+
+  if (users.some((user) => user.email === normalizedEmail)) {
+    return { success: false, message: 'Email đã được sử dụng. Vui lòng thử email khác.' };
+  }
+
+  const newUser: User = {
+    id: `user_${Date.now()}`,
+    email: normalizedEmail,
+    displayName: displayName?.trim() || normalizedEmail.split('@')[0],
+    passwordHash: hashPassword(password),
+    createdAt: new Date().toISOString()
+  };
+
+  const nextUsers = [newUser, ...users];
+  saveUsers(nextUsers);
+  saveCurrentUserId(newUser.id);
+  saveWords(INITIAL_WORDS, newUser.id);
+  saveAttempts(INITIAL_ATTEMPTS, newUser.id);
+  saveSettings(DEFAULT_SETTINGS, newUser.id);
+
+  return { success: true, message: 'Đăng ký thành công. Chào mừng đến với LingoFlow!', user: newUser };
+};
+
+export const loginUser = (
+  email: string,
+  password: string
+): { success: boolean; message: string; user?: User } => {
+  const normalizedEmail = email.trim().toLowerCase();
+  const users = getUsers();
+  const found = users.find((user) => user.email === normalizedEmail);
+
+  if (!found) {
+    return { success: false, message: 'Email chưa được đăng ký. Vui lòng đăng ký trước.' };
+  }
+
+  if (found.passwordHash !== hashPassword(password)) {
+    return { success: false, message: 'Email hoặc mật khẩu không đúng. Vui lòng thử lại.' };
+  }
+
+  saveCurrentUserId(found.id);
+  return { success: true, message: 'Đăng nhập thành công.', user: found };
+};
+
+export const logoutUser = (): void => {
+  clearCurrentUser();
 };

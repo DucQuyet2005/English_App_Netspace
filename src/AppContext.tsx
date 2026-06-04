@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Word, QuizAttempt, AppSettings, TabType } from './types';
+import { Word, QuizAttempt, AppSettings, TabType, User } from './types';
 import {
   getWords,
   saveWords,
@@ -8,6 +8,11 @@ import {
   getSettings,
   saveSettings,
   clearLocalStorage,
+  getCurrentUserId,
+  getUserById,
+  loginUser,
+  registerUser,
+  logoutUser,
   INITIAL_WORDS,
   INITIAL_ATTEMPTS,
   DEFAULT_SETTINGS
@@ -18,7 +23,12 @@ interface AppContextType {
   attempts: QuizAttempt[];
   settings: AppSettings;
   activeTab: TabType;
+  currentUser: User | null;
+  isAuthenticated: boolean;
   setActiveTab: (tab: TabType) => void;
+  login: (email: string, password: string) => { success: boolean; message: string };
+  register: (email: string, password: string, displayName: string) => { success: boolean; message: string };
+  logout: () => void;
   addWord: (wordData: Omit<Word, 'id' | 'createdAt' | 'box' | 'nextReviewDate'>) => void;
   updateWord: (word: Word) => void;
   deleteWord: (id: string) => void;
@@ -37,25 +47,80 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [attempts, setAttempts] = useState<QuizAttempt[]>([]);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [activeTab, setActiveTabState] = useState<TabType>('dashboard');
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Load initial data
-  useEffect(() => {
-    setWords(getWords());
-    setAttempts(getAttempts());
-    
-    const loadedSettings = getSettings();
+  const loadUserData = (userId: string) => {
+    const loadedWords = getWords(userId);
+    const loadedAttempts = getAttempts(userId);
+    const loadedSettings = getSettings(userId);
+
+    setWords(loadedWords);
+    setAttempts(loadedAttempts);
     setSettings(loadedSettings);
-    
-    // Apply dark mode immediately on mount
+
     if (loadedSettings.darkMode) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
+  };
+
+  useEffect(() => {
+    const currentUserId = getCurrentUserId();
+    if (currentUserId) {
+      const user = getUserById(currentUserId);
+      if (user) {
+        setCurrentUser(user);
+        setIsAuthenticated(true);
+        loadUserData(user.id);
+      }
+    }
   }, []);
 
   const setActiveTab = (tab: TabType) => {
     setActiveTabState(tab);
+  };
+
+  const login = (email: string, password: string) => {
+    const result = loginUser(email, password);
+    if (!result.success) {
+      return result;
+    }
+
+    if (result.user) {
+      setCurrentUser(result.user);
+      setIsAuthenticated(true);
+      loadUserData(result.user.id);
+    }
+
+    return { success: true, message: result.message };
+  };
+
+  const register = (email: string, password: string, displayName: string) => {
+    const result = registerUser(email, password, displayName);
+    if (!result.success) {
+      return result;
+    }
+
+    if (result.user) {
+      setCurrentUser(result.user);
+      setIsAuthenticated(true);
+      loadUserData(result.user.id);
+    }
+
+    return { success: true, message: result.message };
+  };
+
+  const logout = () => {
+    logoutUser();
+    setCurrentUser(null);
+    setIsAuthenticated(false);
+    setWords([]);
+    setAttempts([]);
+    setSettings(DEFAULT_SETTINGS);
+    document.documentElement.classList.remove('dark');
+    setActiveTabState('dashboard');
   };
 
   const addWord = (wordData: Omit<Word, 'id' | 'createdAt' | 'box' | 'nextReviewDate'>) => {
@@ -68,33 +133,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     const updated = [newWord, ...words];
     setWords(updated);
-    saveWords(updated);
+    saveWords(updated, currentUser?.id || undefined);
   };
 
   const updateWord = (updatedWord: Word) => {
-    const updated = words.map(w => w.id === updatedWord.id ? updatedWord : w);
+    const updated = words.map(w => (w.id === updatedWord.id ? updatedWord : w));
     setWords(updated);
-    saveWords(updated);
+    saveWords(updated, currentUser?.id || undefined);
   };
 
   const deleteWord = (id: string) => {
     const updated = words.filter(w => w.id !== id);
     setWords(updated);
-    saveWords(updated);
+    saveWords(updated, currentUser?.id || undefined);
   };
 
   const toggleWordLearned = (id: string) => {
     const updated = words.map(w => {
       if (w.id === id) {
         const nextLearned = !w.learned;
-        // Spaced repetition simplier logic:
-        // Nếu thuộc thì nâng box (tối đa 5), lùi thời gian ôn xa hơn.
-        // Nếu chưa thuộc thì hạ box xuống 1, học ngay.
         let nextBox = w.box;
         let nextReviewDays = 1;
         if (nextLearned) {
           nextBox = Math.min(5, w.box + 1);
-          // 1->1 day, 2->2 days, 3->4 days, 4->7 days, 5->14 days
           nextReviewDays = Math.pow(2, nextBox - 1);
         } else {
           nextBox = 1;
@@ -114,7 +175,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return w;
     });
     setWords(updated);
-    saveWords(updated);
+    saveWords(updated, currentUser?.id || undefined);
   };
 
   const addAttempt = (correct: number, total: number, duration: number, topic: string) => {
@@ -131,12 +192,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     const updated = [newAttempt, ...attempts];
     setAttempts(updated);
-    saveAttempts(updated);
+    saveAttempts(updated, currentUser?.id || undefined);
   };
 
   const updateSettings = (newSettings: AppSettings) => {
     setSettings(newSettings);
-    saveSettings(newSettings);
+    saveSettings(newSettings, currentUser?.id || undefined);
     if (newSettings.darkMode) {
       document.documentElement.classList.add('dark');
     } else {
@@ -145,7 +206,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const resetData = () => {
-    clearLocalStorage();
+    if (currentUser?.id) {
+      clearLocalStorage(currentUser.id);
+      saveWords(INITIAL_WORDS, currentUser.id);
+      saveAttempts(INITIAL_ATTEMPTS, currentUser.id);
+      saveSettings(DEFAULT_SETTINGS, currentUser.id);
+    }
+
     setWords(INITIAL_WORDS);
     setAttempts(INITIAL_ATTEMPTS);
     setSettings(DEFAULT_SETTINGS);
@@ -159,7 +226,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       attempts,
       settings,
       exportDate: new Date().toISOString(),
-      app: 'LingoFlow_English'
+      app: 'LingoFlow_English',
+      user: currentUser
+        ? {
+            id: currentUser.id,
+            email: currentUser.email,
+            displayName: currentUser.displayName
+          }
+        : null
     };
     const blob = new Blob([JSON.stringify(stateObj, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -173,30 +247,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const importData = (jsonData: string): { success: boolean; message: string } => {
+    if (!currentUser?.id) {
+      return { success: false, message: 'Vui lòng đăng nhập trước khi nhập dữ liệu.' };
+    }
+
     try {
       const parsed = JSON.parse(jsonData);
       if (parsed.app !== 'LingoFlow_English' || !Array.isArray(parsed.words)) {
         return { success: false, message: 'File dữ liệu không đúng định dạng LingoFlow!' };
       }
-      
+
       setWords(parsed.words);
-      saveWords(parsed.words);
-      
+      saveWords(parsed.words, currentUser.id);
+
       if (Array.isArray(parsed.attempts)) {
         setAttempts(parsed.attempts);
-        saveAttempts(parsed.attempts);
+        saveAttempts(parsed.attempts, currentUser.id);
       }
-      
+
       if (parsed.settings) {
         setSettings(parsed.settings);
-        saveSettings(parsed.settings);
+        saveSettings(parsed.settings, currentUser.id);
         if (parsed.settings.darkMode) {
           document.documentElement.classList.add('dark');
         } else {
           document.documentElement.classList.remove('dark');
         }
       }
-      
+
       return { success: true, message: 'Khôi phục dữ liệu học tập thành công!' };
     } catch (e) {
       return { success: false, message: 'Không thể giải mã dữ liệu JSON. File bị hỏng!' };
@@ -210,7 +288,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         attempts,
         settings,
         activeTab,
+        currentUser,
+        isAuthenticated,
         setActiveTab,
+        login,
+        register,
+        logout,
         addWord,
         updateWord,
         deleteWord,

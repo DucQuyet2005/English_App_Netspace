@@ -85,9 +85,18 @@ interface AppContextType {
   attempts: QuizAttempt[];
   settings: AppSettings;
   activeTab: TabType;
+  currentUser: User | null;
+  isAuthenticated: boolean;
 
   // Actions
   setActiveTab(tab: TabType): void;
+  login(email: string, password: string): { success: boolean; message: string };
+  register(
+    email: string,
+    password: string,
+    displayName: string,
+  ): { success: boolean; message: string };
+  logout(): void;
   addWord(wordData): void;
   updateWord(word: Word): void;
   deleteWord(id: string): void;
@@ -123,6 +132,14 @@ Update UI                         saveWords/saveAttempts/saveSettings
                                               ↓
                                       Local Storage
 ```
+
+### Authentication Flow
+
+- **Email/password auth** được xử lý cục bộ bằng `LocalStorage`.
+- `AppContext` lưu `currentUser` và trạng thái `isAuthenticated`.
+- Mỗi user có namespace dữ liệu riêng: `lingoflow_words_<userId>`, `lingoflow_attempts_<userId>`, `lingoflow_settings_<userId>`.
+- Khi đăng nhập hoặc đăng ký, app tải dữ liệu từ LocalStorage cho user đó và áp dụng `darkMode` ngay.
+- Đăng xuất sẽ xóa phiên hiện tại và đưa người dùng về màn hình login.
 
 ## 4. Component Architecture
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../AppContext';
-import { Search, Bell, Menu, GraduationCap } from 'lucide-react';
+import { Search, Bell, Menu, GraduationCap, LogOut } from 'lucide-react';
 
 interface TopBarProps {
   onSearchChange?: (val: string) => void;
@@ -13,7 +13,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   searchValue = '',
   onMenuClick
 }) => {
-  const { activeTab, setActiveTab, words } = useApp();
+  const { activeTab, setActiveTab, words, currentUser, logout } = useApp();
   const [localSearch, setLocalSearch] = useState(searchValue);
 
   const getTitle = () => {
@@ -100,13 +100,23 @@ export const TopBar: React.FC<TopBarProps> = ({
           <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full"></span>
         </button>
 
-        {/* User Avatar */}
+        {/* User Info */}
         <div className="flex items-center gap-3">
-          <img
-            alt="User avatar"
-            className="w-10 h-10 rounded-2xl border border-indigo-200 dark:border-slate-800 object-cover"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtH4U2LrHX_zICymXF25wg8pP4-lH-ARQTGtswKU_-JQsSzYGKPzL79ib9qKX5V_CVzEZEyfOhOuYCoooDpUrn8X5jVTfj1rKuCqMxVvMwjx94O1X9GVz-qDEC6eHyhkgjnAu-xV87niP-NTe9hPfyLIUazLERYQjw2n-6oLTx1JRi-G_K9XO7YabbQ7MP-2xDJeUEEUbkvEC-xS2oB399lKJYFOpuzi585QFTXHfuoEJcmqYeuzzytVEkTXHuMNfT7TzkeknRl800"
-          />
+          <div className="hidden sm:flex flex-col text-right">
+            <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+              {currentUser?.displayName ?? 'Người dùng'}
+            </span>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-[160px]">
+              {currentUser?.email ?? 'Chưa đăng nhập'}
+            </span>
+          </div>
+          <button
+            onClick={logout}
+            className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800 transition"
+          >
+            <LogOut className="w-4 h-4" />
+            Đăng xuất
+          </button>
         </div>
       </div>
     </header>

@@ -88,6 +88,14 @@ LingoFlow là một ứng dụng web học tiếng Anh toàn diện, kết hợp
   - **Nhập dữ liệu** (Import): Tải file JSON để khôi phục dữ liệu
   - **Reset dữ liệu**: Xóa toàn bộ từ vựng, attempts, quay lại mặc định
 
+### 2.7 Đăng nhập / Đăng ký (Authentication)
+
+- **Đăng ký tài khoản**: Người dùng tạo tài khoản bằng email, mật khẩu và tên hiển thị.
+- **Đăng nhập**: Người dùng đăng nhập bằng email và mật khẩu đã đăng ký.
+- **Quản lý phiên**: Khi đăng nhập thành công, người dùng được đưa vào app chính.
+- **Dữ liệu riêng tư**: Mỗi tài khoản có dữ liệu từ vựng, quiz attempts và cài đặt riêng biệt.
+- **Đăng xuất**: Cho phép người dùng đăng xuất và trở về màn hình đăng nhập.
+
 ## 3. Yêu Cầu Chức Năng (Functional Requirements)
 
 ### FR1: Quản Lý Từ Vựng
@@ -134,6 +142,13 @@ LingoFlow là một ứng dụng web học tiếng Anh toàn diện, kết hợp
 - [ ] Xuất dữ liệu toàn bộ (Export JSON)
 - [ ] Nhập dữ liệu từ file JSON
 - [ ] Reset dữ liệu về mặc định
+
+### FR6: Authentication
+
+- [ ] Đăng ký tài khoản bằng email, mật khẩu và tên hiển thị
+- [ ] Đăng nhập bằng email và mật khẩu đã đăng ký
+- [ ] Mỗi người dùng có dữ liệu từ vựng riêng và cài đặt riêng
+- [ ] Đăng xuất trở về màn hình đăng nhập
 
 ## 4. Yêu Cầu Phi Chức Năng (Non-Functional Requirements)
 
