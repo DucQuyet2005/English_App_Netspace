@@ -1,0 +1,6 @@
+{
+  "name": "LingoFlow",
+  "description": "Ứng dụng học tiếng Anh thông minh với Flashcard, Quiz sinh động, Quản lý từ vựng khoa học và Thống kê tiến độ trực quan.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
