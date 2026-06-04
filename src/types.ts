@@ -29,6 +29,9 @@ export interface QuizAttempt {
 
 export interface AppSettings {
   darkMode: boolean;
+  // UI theme: 'normal' is the app's default appearance, 'light' forces light palette,
+  // 'dark' forces dark palette.
+  theme?: 'normal' | 'light' | 'dark';
   defaultQuizSize: number; // 5, 10, 15, 20
   dailyGoal: number; // Số từ cần học mỗi ngày
 }

@@ -58,12 +58,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setWords(loadedWords);
     setAttempts(loadedAttempts);
     setSettings(loadedSettings);
+    const applyTheme = (theme?: AppSettings['theme'], preferDark?: boolean) => {
+      const t = theme ?? (preferDark ? 'dark' : 'normal');
+      if (t === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('theme-light');
+      } else if (t === 'light') {
+        document.documentElement.classList.add('theme-light');
+        document.documentElement.classList.remove('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.remove('theme-light');
+      }
+    };
 
-    if (loadedSettings.darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    applyTheme(loadedSettings.theme, loadedSettings.darkMode);
   };
 
   useEffect(() => {
@@ -120,6 +129,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setAttempts([]);
     setSettings(DEFAULT_SETTINGS);
     document.documentElement.classList.remove('dark');
+    document.documentElement.classList.remove('theme-light');
     setActiveTabState('dashboard');
   };
 
@@ -198,10 +208,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateSettings = (newSettings: AppSettings) => {
     setSettings(newSettings);
     saveSettings(newSettings, currentUser?.id || undefined);
-    if (newSettings.darkMode) {
+    const t = newSettings.theme ?? (newSettings.darkMode ? 'dark' : 'normal');
+    if (t === 'dark') {
       document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('theme-light');
+    } else if (t === 'light') {
+      document.documentElement.classList.add('theme-light');
+      document.documentElement.classList.remove('dark');
     } else {
       document.documentElement.classList.remove('dark');
+      document.documentElement.classList.remove('theme-light');
     }
   };
 
@@ -217,6 +233,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setAttempts(INITIAL_ATTEMPTS);
     setSettings(DEFAULT_SETTINGS);
     document.documentElement.classList.remove('dark');
+    document.documentElement.classList.remove('theme-light');
     setActiveTabState('dashboard');
   };
 
@@ -268,10 +285,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (parsed.settings) {
         setSettings(parsed.settings);
         saveSettings(parsed.settings, currentUser.id);
-        if (parsed.settings.darkMode) {
+        const t = parsed.settings.theme ?? (parsed.settings.darkMode ? 'dark' : 'normal');
+        if (t === 'dark') {
           document.documentElement.classList.add('dark');
+          document.documentElement.classList.remove('theme-light');
+        } else if (t === 'light') {
+          document.documentElement.classList.add('theme-light');
+          document.documentElement.classList.remove('dark');
         } else {
           document.documentElement.classList.remove('dark');
+          document.documentElement.classList.remove('theme-light');
         }
       }
 

@@ -18,11 +18,16 @@ export const SettingsPage: React.FC = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [quizSize, setQuizSize] = useState(settings.defaultQuizSize || 10);
   const [dailyGoal, setDailyGoal] = useState(settings.dailyGoal || 5);
+  const [theme, setTheme] = useState<"normal" | "light" | "dark">(
+    (settings.theme as any) ?? (settings.darkMode ? 'dark' : 'normal')
+  );
 
-  const handleDarkModeToggle = () => {
+  const handleThemeChange = (next: 'normal' | 'light' | 'dark') => {
+    setTheme(next);
     updateSettings({
       ...settings,
-      darkMode: !settings.darkMode
+      theme: next,
+      darkMode: next === 'dark'
     });
   };
 
@@ -57,26 +62,49 @@ export const SettingsPage: React.FC = () => {
           <Palette className="w-5 h-5 text-indigo-500" /> Bảng màu & Giao diện
         </h4>
 
-        <div className="bg-white dark:bg-slate-950 p-6 rounded-2xl border border-slate-200/50 dark:border-slate-850 shadow-sm flex items-center justify-between">
-          <div className="space-y-1">
-            <h5 className="font-extrabold text-sm text-slate-800 dark:text-slate-200">Chế độ giao diện (Dark Mode)</h5>
-            <p className="text-xs font-semibold text-slate-400 dark:text-slate-500">Chuyển đổi giữa chế độ sáng và tối giúp bảo vệ mắt vào ban đêm.</p>
+        <div className="bg-white dark:bg-slate-950 p-6 rounded-2xl border border-slate-200/50 dark:border-slate-850 shadow-sm">
+          <div className="space-y-1 mb-4">
+            <h5 className="font-extrabold text-sm text-slate-800 dark:text-slate-200">Chế độ giao diện</h5>
+            <p className="text-xs font-semibold text-slate-400 dark:text-slate-500">Chọn giữa giao diện mặc định (Normal), giao diện sáng (Light) hoặc tối (Dark).</p>
           </div>
 
-          {/* Switch toggle Button */}
-          <button
-            onClick={handleDarkModeToggle}
-            className={`w-14 h-8 flex items-center rounded-full p-1 transition-all duration-300 ${
-              settings.darkMode ? 'bg-indigo-600' : 'bg-slate-200 dark:bg-slate-800'
-            }`}
-          >
-            <motion.div
-              layout
-              className="bg-white w-6 h-6 rounded-full shadow-md"
-              animate={{ x: settings.darkMode ? 24 : 0 }}
-              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-            />
-          </button>
+          <div className="flex gap-3 items-center">
+            <label className={`cursor-pointer px-4 py-2 rounded-xl border ${theme === 'normal' ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-200 dark:border-slate-800 bg-transparent'}`}>
+              <input
+                type="radio"
+                name="theme"
+                value="normal"
+                checked={theme === 'normal'}
+                onChange={() => handleThemeChange('normal')}
+                className="hidden"
+              />
+              Normal
+            </label>
+
+            <label className={`cursor-pointer px-4 py-2 rounded-xl border ${theme === 'light' ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-200 dark:border-slate-800 bg-transparent'}`}>
+              <input
+                type="radio"
+                name="theme"
+                value="light"
+                checked={theme === 'light'}
+                onChange={() => handleThemeChange('light')}
+                className="hidden"
+              />
+              Light
+            </label>
+
+            <label className={`cursor-pointer px-4 py-2 rounded-xl border ${theme === 'dark' ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-200 dark:border-slate-800 bg-transparent'}`}>
+              <input
+                type="radio"
+                name="theme"
+                value="dark"
+                checked={theme === 'dark'}
+                onChange={() => handleThemeChange('dark')}
+                className="hidden"
+              />
+              Dark
+            </label>
+          </div>
         </div>
       </section>
 

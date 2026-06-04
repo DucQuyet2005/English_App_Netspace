@@ -209,6 +209,7 @@ export const INITIAL_ATTEMPTS: QuizAttempt[] = [
 
 export const DEFAULT_SETTINGS: AppSettings = {
   darkMode: false,
+  theme: 'normal',
   defaultQuizSize: 10,
   dailyGoal: 5
 };
