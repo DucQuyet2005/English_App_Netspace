@@ -16,10 +16,24 @@ import {
   HelpCircle
 } from 'lucide-react';
 
-export const Vocabulary: React.FC = () => {
+interface VocabularyProps {
+  searchValue?: string;
+  onSearchChange?: (val: string) => void;
+}
+
+export const Vocabulary: React.FC<VocabularyProps> = ({ searchValue = '', onSearchChange }) => {
   const { words, addWord, updateWord, deleteWord, toggleWordLearned } = useApp();
 
-  const [search, setSearch] = useState('');
+  const [localSearch, setLocalSearch] = useState('');
+  const search = onSearchChange ? searchValue : localSearch;
+
+  const handleSearchChange = (val: string) => {
+    setLocalSearch(val);
+    if (onSearchChange) {
+      onSearchChange(val);
+    }
+  };
+
   const [topicFilter, setTopicFilter] = useState('Tất cả');
   const [statusFilter, setStatusFilter] = useState('Tất cả');
 
@@ -133,7 +147,7 @@ export const Vocabulary: React.FC = () => {
             type="text"
             placeholder="Tìm theo từ tiếng Anh hoặc nghĩa..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="w-full pl-11 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 text-slate-800 dark:text-slate-200"
           />
         </div>
