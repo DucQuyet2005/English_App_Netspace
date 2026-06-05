@@ -14,7 +14,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onSwitch }) => {
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (password !== confirmPassword) {
@@ -22,7 +22,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onSwitch }) => {
       return;
     }
 
-    const result = register(email, password, displayName);
+    const result = await register(email, password, displayName);
     if (!result.success) {
       setError(result.message);
       return;

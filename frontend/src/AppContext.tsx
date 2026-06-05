@@ -1,128 +1,183 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Word, QuizAttempt, AppSettings, TabType, User } from './types';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { Word, QuizAttempt, AppSettings, TabType } from './types';
 import {
-  getWords,
-  saveWords,
-  getAttempts,
-  saveAttempts,
-  getSettings,
-  saveSettings,
-  clearLocalStorage,
-  getCurrentUserId,
-  getUserById,
-  loginUser,
-  registerUser,
-  logoutUser,
-  INITIAL_WORDS,
-  INITIAL_ATTEMPTS,
-  DEFAULT_SETTINGS
-} from './services/storageService';
+  apiLogin,
+  apiRegister,
+  apiGetMe,
+  apiLogout,
+  apiGetWords,
+  apiCreateWord,
+  apiUpdateWord as apiUpdateWordReq,
+  apiDeleteWord as apiDeleteWordReq,
+  apiToggleWordLearned as apiToggleLearned,
+  apiGetAttempts,
+  apiCreateAttempt,
+  apiUpdateSettings as apiUpdateSettingsReq,
+  apiExportData,
+  apiImportData,
+  apiResetData,
+  getToken,
+} from './services/apiService';
+
+// User type for frontend (no passwordHash)
+interface FrontendUser {
+  id: string;
+  email: string;
+  displayName: string;
+  createdAt: string;
+}
+
+const DEFAULT_SETTINGS: AppSettings = {
+  darkMode: false,
+  theme: 'normal',
+  defaultQuizSize: 10,
+  dailyGoal: 5,
+};
 
 interface AppContextType {
   words: Word[];
   attempts: QuizAttempt[];
   settings: AppSettings;
   activeTab: TabType;
-  currentUser: User | null;
+  currentUser: FrontendUser | null;
   isAuthenticated: boolean;
+  loading: boolean;
   setActiveTab: (tab: TabType) => void;
-  login: (email: string, password: string) => { success: boolean; message: string };
-  register: (email: string, password: string, displayName: string) => { success: boolean; message: string };
+  login: (email: string, password: string) => Promise<{ success: boolean; message: string }>;
+  register: (email: string, password: string, displayName: string) => Promise<{ success: boolean; message: string }>;
   logout: () => void;
-  addWord: (wordData: Omit<Word, 'id' | 'createdAt' | 'box' | 'nextReviewDate'>) => void;
-  updateWord: (word: Word) => void;
-  deleteWord: (id: string) => void;
-  addAttempt: (correct: number, total: number, duration: number, topic: string) => void;
-  updateSettings: (settings: AppSettings) => void;
-  resetData: () => void;
-  toggleWordLearned: (id: string) => void;
-  exportData: () => void;
-  importData: (jsonData: string) => { success: boolean; message: string };
+  addWord: (wordData: Omit<Word, 'id' | 'createdAt' | 'box' | 'nextReviewDate'>) => Promise<void>;
+  updateWord: (word: Word) => Promise<void>;
+  deleteWord: (id: string) => Promise<void>;
+  addAttempt: (correct: number, total: number, duration: number, topic: string) => Promise<void>;
+  updateSettings: (settings: AppSettings) => Promise<void>;
+  resetData: () => Promise<void>;
+  toggleWordLearned: (id: string) => Promise<void>;
+  exportData: () => Promise<void>;
+  importData: (jsonData: string) => Promise<{ success: boolean; message: string }>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
+
+const applyTheme = (theme?: AppSettings['theme'], preferDark?: boolean) => {
+  const t = theme ?? (preferDark ? 'dark' : 'normal');
+  if (t === 'dark') {
+    document.documentElement.classList.add('dark');
+    document.documentElement.classList.remove('theme-light');
+  } else if (t === 'light') {
+    document.documentElement.classList.add('theme-light');
+    document.documentElement.classList.remove('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+    document.documentElement.classList.remove('theme-light');
+  }
+};
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [words, setWords] = useState<Word[]>([]);
   const [attempts, setAttempts] = useState<QuizAttempt[]>([]);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [activeTab, setActiveTabState] = useState<TabType>('dashboard');
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<FrontendUser | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const loadUserData = (userId: string) => {
-    const loadedWords = getWords(userId);
-    const loadedAttempts = getAttempts(userId);
-    const loadedSettings = getSettings(userId);
+  // Load all user data from API
+  const loadUserData = useCallback(async (userSettings?: AppSettings) => {
+    try {
+      const [wordsData, attemptsData] = await Promise.all([
+        apiGetWords(),
+        apiGetAttempts(),
+      ]);
+      setWords(wordsData);
+      setAttempts(attemptsData);
+      if (userSettings) {
+        setSettings(userSettings);
+        applyTheme(userSettings.theme, userSettings.darkMode);
+      }
+    } catch (error) {
+      console.error('Failed to load user data:', error);
+    }
+  }, []);
 
-    setWords(loadedWords);
-    setAttempts(loadedAttempts);
-    setSettings(loadedSettings);
-    const applyTheme = (theme?: AppSettings['theme'], preferDark?: boolean) => {
-      const t = theme ?? (preferDark ? 'dark' : 'normal');
-      if (t === 'dark') {
-        document.documentElement.classList.add('dark');
-        document.documentElement.classList.remove('theme-light');
-      } else if (t === 'light') {
-        document.documentElement.classList.add('theme-light');
-        document.documentElement.classList.remove('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-        document.documentElement.classList.remove('theme-light');
+  // Check for existing token on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = getToken();
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const result = await apiGetMe();
+        if (result.success && result.user) {
+          setCurrentUser({
+            id: result.user.id,
+            email: result.user.email,
+            displayName: result.user.displayName,
+            createdAt: result.user.createdAt,
+          });
+          setIsAuthenticated(true);
+          await loadUserData(result.user.settings);
+        }
+      } catch (error) {
+        // Token expired or invalid
+        apiLogout();
+      } finally {
+        setLoading(false);
       }
     };
 
-    applyTheme(loadedSettings.theme, loadedSettings.darkMode);
-  };
-
-  useEffect(() => {
-    const currentUserId = getCurrentUserId();
-    if (currentUserId) {
-      const user = getUserById(currentUserId);
-      if (user) {
-        setCurrentUser(user);
-        setIsAuthenticated(true);
-        loadUserData(user.id);
-      }
-    }
-  }, []);
+    checkAuth();
+  }, [loadUserData]);
 
   const setActiveTab = (tab: TabType) => {
     setActiveTabState(tab);
   };
 
-  const login = (email: string, password: string) => {
-    const result = loginUser(email, password);
-    if (!result.success) {
-      return result;
+  const login = async (email: string, password: string) => {
+    try {
+      const result = await apiLogin(email, password);
+      if (result.success && result.user) {
+        setCurrentUser({
+          id: result.user.id,
+          email: result.user.email,
+          displayName: result.user.displayName,
+          createdAt: result.user.createdAt,
+        });
+        setIsAuthenticated(true);
+        await loadUserData(result.user.settings);
+        return { success: true, message: result.message };
+      }
+      return { success: false, message: result.message };
+    } catch (error: any) {
+      return { success: false, message: error.message || 'Lỗi đăng nhập.' };
     }
-
-    if (result.user) {
-      setCurrentUser(result.user);
-      setIsAuthenticated(true);
-      loadUserData(result.user.id);
-    }
-
-    return { success: true, message: result.message };
   };
 
-  const register = (email: string, password: string, displayName: string) => {
-    const result = registerUser(email, password, displayName);
-    if (!result.success) {
-      return result;
+  const register = async (email: string, password: string, displayName: string) => {
+    try {
+      const result = await apiRegister(email, password, displayName);
+      if (result.success && result.user) {
+        setCurrentUser({
+          id: result.user.id,
+          email: result.user.email,
+          displayName: result.user.displayName,
+          createdAt: result.user.createdAt,
+        });
+        setIsAuthenticated(true);
+        await loadUserData(result.user.settings);
+        return { success: true, message: result.message };
+      }
+      return { success: false, message: result.message };
+    } catch (error: any) {
+      return { success: false, message: error.message || 'Lỗi đăng ký.' };
     }
-
-    if (result.user) {
-      setCurrentUser(result.user);
-      setIsAuthenticated(true);
-      loadUserData(result.user.id);
-    }
-
-    return { success: true, message: result.message };
   };
 
   const logout = () => {
-    logoutUser();
+    apiLogout();
     setCurrentUser(null);
     setIsAuthenticated(false);
     setWords([]);
@@ -133,172 +188,126 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setActiveTabState('dashboard');
   };
 
-  const addWord = (wordData: Omit<Word, 'id' | 'createdAt' | 'box' | 'nextReviewDate'>) => {
-    const newWord: Word = {
-      ...wordData,
-      id: 'word_' + Date.now().toString(),
-      box: 1,
-      nextReviewDate: new Date().toISOString(),
-      createdAt: new Date().toISOString()
-    };
-    const updated = [newWord, ...words];
-    setWords(updated);
-    saveWords(updated, currentUser?.id || undefined);
+  const addWord = async (wordData: Omit<Word, 'id' | 'createdAt' | 'box' | 'nextReviewDate'>) => {
+    try {
+      const newWord = await apiCreateWord(wordData);
+      setWords((prev) => [newWord, ...prev]);
+    } catch (error) {
+      console.error('Failed to add word:', error);
+    }
   };
 
-  const updateWord = (updatedWord: Word) => {
-    const updated = words.map(w => (w.id === updatedWord.id ? updatedWord : w));
-    setWords(updated);
-    saveWords(updated, currentUser?.id || undefined);
+  const updateWord = async (updatedWord: Word) => {
+    try {
+      const result = await apiUpdateWordReq(updatedWord);
+      setWords((prev) => prev.map((w) => (w.id === result.id ? result : w)));
+    } catch (error) {
+      console.error('Failed to update word:', error);
+    }
   };
 
-  const deleteWord = (id: string) => {
-    const updated = words.filter(w => w.id !== id);
-    setWords(updated);
-    saveWords(updated, currentUser?.id || undefined);
+  const deleteWord = async (id: string) => {
+    try {
+      await apiDeleteWordReq(id);
+      setWords((prev) => prev.filter((w) => w.id !== id));
+    } catch (error) {
+      console.error('Failed to delete word:', error);
+    }
   };
 
-  const toggleWordLearned = (id: string) => {
-    const updated = words.map(w => {
-      if (w.id === id) {
-        const nextLearned = !w.learned;
-        let nextBox = w.box;
-        let nextReviewDays = 1;
-        if (nextLearned) {
-          nextBox = Math.min(5, w.box + 1);
-          nextReviewDays = Math.pow(2, nextBox - 1);
-        } else {
-          nextBox = 1;
-          nextReviewDays = 0;
-        }
-
-        const nextReviewDate = new Date();
-        nextReviewDate.setDate(nextReviewDate.getDate() + nextReviewDays);
-
-        return {
-          ...w,
-          learned: nextLearned,
-          box: nextBox,
-          nextReviewDate: nextReviewDate.toISOString()
-        };
-      }
-      return w;
-    });
-    setWords(updated);
-    saveWords(updated, currentUser?.id || undefined);
+  const toggleWordLearned = async (id: string) => {
+    try {
+      const updated = await apiToggleLearned(id);
+      setWords((prev) => prev.map((w) => (w.id === updated.id ? updated : w)));
+    } catch (error) {
+      console.error('Failed to toggle learned:', error);
+    }
   };
 
-  const addAttempt = (correct: number, total: number, duration: number, topic: string) => {
-    const score = Math.round((correct / total) * 100);
-    const newAttempt: QuizAttempt = {
-      id: 'attempt_' + Date.now().toString(),
-      date: new Date().toISOString(),
-      score,
-      totalQuestions: total,
-      correctAnswers: correct,
-      wrongAnswers: total - correct,
-      duration,
-      topic
-    };
-    const updated = [newAttempt, ...attempts];
-    setAttempts(updated);
-    saveAttempts(updated, currentUser?.id || undefined);
+  const addAttempt = async (correct: number, total: number, duration: number, topic: string) => {
+    try {
+      const score = Math.round((correct / total) * 100);
+      const newAttempt = await apiCreateAttempt({
+        score,
+        totalQuestions: total,
+        correctAnswers: correct,
+        wrongAnswers: total - correct,
+        duration,
+        topic,
+      });
+      setAttempts((prev) => [newAttempt, ...prev]);
+    } catch (error) {
+      console.error('Failed to add attempt:', error);
+    }
   };
 
-  const updateSettings = (newSettings: AppSettings) => {
-    setSettings(newSettings);
-    saveSettings(newSettings, currentUser?.id || undefined);
-    const t = newSettings.theme ?? (newSettings.darkMode ? 'dark' : 'normal');
-    if (t === 'dark') {
-      document.documentElement.classList.add('dark');
-      document.documentElement.classList.remove('theme-light');
-    } else if (t === 'light') {
-      document.documentElement.classList.add('theme-light');
-      document.documentElement.classList.remove('dark');
-    } else {
+  const updateSettings = async (newSettings: AppSettings) => {
+    try {
+      const result = await apiUpdateSettingsReq(newSettings);
+      setSettings(result);
+      applyTheme(result.theme, result.darkMode);
+    } catch (error) {
+      console.error('Failed to update settings:', error);
+      // Apply locally anyway for responsiveness
+      setSettings(newSettings);
+      applyTheme(newSettings.theme, newSettings.darkMode);
+    }
+  };
+
+  const resetData = async () => {
+    try {
+      await apiResetData();
+      // Reload data from server
+      await loadUserData({
+        darkMode: false,
+        theme: 'normal',
+        defaultQuizSize: 10,
+        dailyGoal: 5,
+      });
       document.documentElement.classList.remove('dark');
       document.documentElement.classList.remove('theme-light');
+      setActiveTabState('dashboard');
+    } catch (error) {
+      console.error('Failed to reset data:', error);
     }
   };
 
-  const resetData = () => {
-    if (currentUser?.id) {
-      clearLocalStorage(currentUser.id);
-      saveWords(INITIAL_WORDS, currentUser.id);
-      saveAttempts(INITIAL_ATTEMPTS, currentUser.id);
-      saveSettings(DEFAULT_SETTINGS, currentUser.id);
+  const exportData = async () => {
+    try {
+      const data = await apiExportData();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `lingoflow_data_${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to export data:', error);
     }
-
-    setWords(INITIAL_WORDS);
-    setAttempts(INITIAL_ATTEMPTS);
-    setSettings(DEFAULT_SETTINGS);
-    document.documentElement.classList.remove('dark');
-    document.documentElement.classList.remove('theme-light');
-    setActiveTabState('dashboard');
   };
 
-  const exportData = () => {
-    const stateObj = {
-      words,
-      attempts,
-      settings,
-      exportDate: new Date().toISOString(),
-      app: 'LingoFlow_English',
-      user: currentUser
-        ? {
-            id: currentUser.id,
-            email: currentUser.email,
-            displayName: currentUser.displayName
-          }
-        : null
-    };
-    const blob = new Blob([JSON.stringify(stateObj, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `lingoflow_data_${new Date().toISOString().slice(0, 10)}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  const importData = (jsonData: string): { success: boolean; message: string } => {
-    if (!currentUser?.id) {
-      return { success: false, message: 'Vui lòng đăng nhập trước khi nhập dữ liệu.' };
-    }
-
+  const importData = async (jsonData: string): Promise<{ success: boolean; message: string }> => {
     try {
       const parsed = JSON.parse(jsonData);
       if (parsed.app !== 'LingoFlow_English' || !Array.isArray(parsed.words)) {
         return { success: false, message: 'File dữ liệu không đúng định dạng LingoFlow!' };
       }
 
-      setWords(parsed.words);
-      saveWords(parsed.words, currentUser.id);
+      const result = await apiImportData({
+        words: parsed.words,
+        attempts: parsed.attempts,
+        settings: parsed.settings,
+      });
 
-      if (Array.isArray(parsed.attempts)) {
-        setAttempts(parsed.attempts);
-        saveAttempts(parsed.attempts, currentUser.id);
+      if (result.success) {
+        // Reload all data
+        await loadUserData(parsed.settings);
       }
 
-      if (parsed.settings) {
-        setSettings(parsed.settings);
-        saveSettings(parsed.settings, currentUser.id);
-        const t = parsed.settings.theme ?? (parsed.settings.darkMode ? 'dark' : 'normal');
-        if (t === 'dark') {
-          document.documentElement.classList.add('dark');
-          document.documentElement.classList.remove('theme-light');
-        } else if (t === 'light') {
-          document.documentElement.classList.add('theme-light');
-          document.documentElement.classList.remove('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-          document.documentElement.classList.remove('theme-light');
-        }
-      }
-
-      return { success: true, message: 'Khôi phục dữ liệu học tập thành công!' };
+      return result;
     } catch (e) {
       return { success: false, message: 'Không thể giải mã dữ liệu JSON. File bị hỏng!' };
     }
@@ -311,8 +320,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         attempts,
         settings,
         activeTab,
-        currentUser,
+        currentUser: currentUser as any,
         isAuthenticated,
+        loading,
         setActiveTab,
         login,
         register,
@@ -325,7 +335,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         resetData,
         toggleWordLearned,
         exportData,
-        importData
+        importData,
       }}
     >
       {children}

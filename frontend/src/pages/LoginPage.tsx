@@ -12,9 +12,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitch }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const result = login(email, password);
+    const result = await login(email, password);
     if (!result.success) {
       setError(result.message);
       return;
