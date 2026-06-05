@@ -49,6 +49,26 @@ export const Vocabulary: React.FC<VocabularyProps> = ({ searchValue = '', onSear
   const [topicInput, setTopicInput] = useState('Gia đình');
   const [learnedInput, setLearnedInput] = useState(false);
 
+  // Hàm tự động lấy phiên âm IPA từ Free Dictionary API
+  const fetchAutoIpa = async (word: string) => {
+    const trimmedWord = word.trim();
+    if (!trimmedWord) return;
+    
+    try {
+      const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(trimmedWord.toLowerCase())}`);
+      if (!response.ok) return;
+      
+      const data = await response.json();
+      const phonetic = data[0]?.phonetic || data[0]?.phonetics?.find((p: any) => p.text)?.text;
+      
+      if (phonetic) {
+        setIpaInput(phonetic);
+      }
+    } catch (error) {
+      console.error('Lỗi khi lấy phiên âm tự động:', error);
+    }
+  };
+
   // Thu thập danh sách chủ đề duy nhất hiện có trong dữ liệu
   const availableTopics = useMemo(() => {
     const topics = new Set(words.map(w => w.topic));
@@ -331,6 +351,7 @@ export const Vocabulary: React.FC<VocabularyProps> = ({ searchValue = '', onSear
                       placeholder="vd: Resilience"
                       value={wordInput}
                       onChange={(e) => setWordInput(e.target.value)}
+                      onBlur={(e) => fetchAutoIpa(e.target.value)}
                       className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200/50 dark:border-slate-850 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/25 text-slate-800 dark:text-slate-200"
                     />
                   </div>
