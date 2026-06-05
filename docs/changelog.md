@@ -17,6 +17,8 @@ Tất cả các thay đổi đáng chú ý đối với project LingoFlow đư�
 
 ### [ADDED]
 
+- Tích hợp Free Dictionary API tự động điền phiên âm IPA chuẩn khi người dùng thêm/sửa từ mới.
+- Đồng bộ hóa thanh tìm kiếm (Search Bar) hai chiều giữa Header (TopBar) và trang Quản lý từ vựng (Vocabulary).
 - Placeholder cho tính năng AI suggestions (Google Gemini API in dependencies)
 - Motion library cho smooth animations (placeholder)
 - Express.js dependency cho backend (future-proofing)

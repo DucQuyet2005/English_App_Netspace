@@ -21,8 +21,10 @@ Trước đây, ứng dụng lưu trữ dữ liệu hoàn toàn bằng LocalStor
 - Xây dựng hệ thống phân quyền và xác thực phiên đăng nhập bằng **JSON Web Token (JWT)**.
 - Gắn bảo mật cho các Endpoints (Protected Routes), đảm bảo chỉ những người dùng đã đăng nhập hợp lệ mới có thể truy vấn và chỉnh sửa bộ từ vựng hay kết quả Quiz của mình.
 
-## 3. Khắc phục Sự cố UI/UX và Giao diện
-Ngoài việc nâng cấp tính năng logic, phần hiển thị cũng được tinh chỉnh để tăng trải nghiệm người dùng:
+## 3. Hoàn thiện Trải nghiệm Người dùng (UX) & Tìm kiếm
+Chúng tôi cũng đã tiến hành nâng cấp lớn cho giao diện và trải nghiệm tương tác với từ vựng:
+- **Đồng bộ hóa thanh tìm kiếm (Search Bar) hai chiều:** Thiết lập cơ chế binding dữ liệu thời gian thực giữa ô Tìm kiếm trên thanh tiêu đề (`TopBar`) và ô tìm kiếm chính trong màn quản lý (`Vocabulary.tsx`), tạo sự nhất quán và phản hồi nhanh chóng cho người dùng.
+- **Tự động điền phiên âm IPA:** Tích hợp với **Free Dictionary API** công khai. Khi người dùng nhập một từ tiếng Anh mới, hệ thống sẽ tự động gọi API ở sự kiện `onBlur` để tìm kiếm và điền sẵn phiên âm chuẩn IPA tương ứng, giúp tiết kiệm thời gian nhập liệu đáng kể mà vẫn giữ được tính linh hoạt khi cần chỉnh sửa thủ công.
 - **Khắc phục lỗi hiển thị Dark Mode:** Sửa lỗi đảo ngược bảng màu khi chuyển sang chế độ tối, đảm bảo các class `dark:` của TailwindCSS hoạt động chuẩn xác trên toàn hệ thống.
 - **Tối ưu hiển thị Light Mode:** Loại bỏ các quy tắc CSS ép buộc (`!important`) không cần thiết gây mờ chữ hoặc giảm độ tương phản ở giao diện sáng, giúp chữ hiển thị sắc nét và dễ đọc hơn.
 
