@@ -1,0 +1,205 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Lora", Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-display: "Lora", Georgia, Cambria, serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  /* Natural Tones colors mapped to default tailwind classes */
+  /* Warm Slate tones */
+  --color-slate-50: #f9f8f4;      /* Soft Paper background */
+  --color-slate-100: #f2efe7;     /* Light warm container bg */
+  --color-slate-200: #d8d3c5;     /* Sidebar border / Divider lines */
+  --color-slate-300: #c6bfaf;     /* Muted border lines */
+  --color-slate-400: #8c8573;     /* Placeholder grey */
+  --color-slate-500: #6b6454;     /* Secondary / Muted body text */
+  --color-slate-600: #544e40;     /* General body text */
+  --color-slate-705: #423d32;
+  --color-slate-800: #2c2c24;     /* Core dark text / Headings */
+  --color-slate-900: #1b1b15;     /* Dark organic night bg */
+  --color-slate-950: #22221b;     /* Dark organic night cards */
+
+  /* Primary Accent Olive mapped to Indigo */
+  --color-indigo-50: #f4f4ec;      /* Light olive tint */
+  --color-indigo-100: #e7e7d6;     /* Olive borders */
+  --color-indigo-200: #ced2b7;
+  --color-indigo-300: #afb591;
+  --color-indigo-400: #8d956b;
+  --color-indigo-500: #6d744e;     /* Hover organic olive */
+  --color-indigo-600: #5a5a40;     /* Primary Olive */
+  --color-indigo-700: #4a4a35;
+  --color-indigo-800: #3a3a2a;
+  --color-indigo-900: #2a2a1f;
+
+  /* Accent Terracotta mapped to Teal */
+  --color-teal-50: #faf6f0;       /* Terracotta tint */
+  --color-teal-100: #f3e9de;
+  --color-teal-200: #e6cec0;
+  --color-teal-300: #dcaea1;
+  --color-teal-400: #e5b399;
+  --color-teal-500: #e0ae93;      /* Terracotta hover */
+  --color-teal-600: #d99c7b;      /* Warm Terracotta */
+  --color-teal-700: #ca8865;
+  --color-teal-800: #b16d4b;
+  --color-teal-900: #854a2a;
+
+  /* Accent Sage mapped to Amber */
+  --color-amber-50: #f2f2eb;       /* Sage tint */
+  --color-amber-100: #e5e5da;
+  --color-amber-200: #cdcbbb;
+  --color-amber-300: #b4b39e;
+  --color-amber-400: #a7a691;
+  --color-amber-500: #a5a58d;      /* Calm Sage */
+  --color-amber-600: #8f8f76;
+  --color-amber-700: #7a7a61;
+  --color-amber-800: #64644d;
+  --color-amber-900: #4f4f3c;
+
+  /* Custom named palette keys */
+  --color-paper: #f9f8f4;
+  --color-sidebar: #ebe7de;
+  --color-sidebar-border: #d8d3c5;
+  --color-natural-olive: #5a5a40;
+  --color-natural-warm: #d99c7b;
+  --color-natural-sage: #a5a58d;
+  --color-natural-dark: #2c2c24;
+
+  /* Shadows with organic hue */
+  --shadow-sm: 0 1px 2px rgba(90, 90, 64, 0.05);
+  --shadow-md: 0 4px 12px rgba(90, 90, 64, 0.06);
+  --shadow-lg: 0 10px 24px rgba(90, 90, 64, 0.08);
+}
+
+body {
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  background-color: var(--color-slate-50);
+  color: var(--color-slate-800);
+}
+
+/* Serif font helper for gorgeous, organic literary typography */
+.font-serif-title {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* Custom scrollbars with natural coloring */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(90, 90, 64, 0.15);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(90, 90, 64, 0.3);
+}
+
+/* Theme overrides applied by adding class on <html> (document.documentElement) */
+html.theme-light {
+  color-scheme: light;
+  --color-slate-50: #ffffff;
+  --color-slate-100: #f8fafc;
+  --color-slate-200: #e5e7eb;
+  --color-slate-300: #d1d5db;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #475569;
+  --color-slate-600: #334155;
+  --color-slate-700: #1e293b;
+  --color-slate-800: #0f172a;
+  --color-slate-900: #020617;
+
+  --color-paper: #ffffff;
+  --color-sidebar: #f8fafc;
+  --color-sidebar-border: #e5e7eb;
+
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 18px 48px rgba(15, 23, 42, 0.12);
+}
+
+html.theme-light body {
+  background-color: var(--color-slate-50);
+  color: var(--color-slate-800);
+}
+
+html.theme-light .text-slate-800,
+html.theme-light .text-slate-700,
+html.theme-light .text-slate-600,
+html.theme-light .text-slate-500,
+html.theme-light .text-slate-400,
+html.theme-light .text-slate-300 {
+  color: #0f172a !important;
+}
+
+html.theme-light .bg-slate-50,
+html.theme-light .bg-slate-100,
+html.theme-light .bg-slate-200,
+html.theme-light .bg-slate-300,
+html.theme-light .bg-white,
+html.theme-light .bg-sidebar,
+html.theme-light .bg-slate-900,
+html.theme-light .bg-slate-950,
+html.theme-light .bg-slate-800,
+html.theme-light .bg-slate-700,
+html.theme-light .bg-slate-600 {
+  background-color: #ffffff !important;
+}
+
+html.theme-light .border-slate-200,
+html.theme-light .border-slate-300,
+html.theme-light .border-slate-400,
+html.theme-light .border-slate-500,
+html.theme-light .border-slate-600,
+html.theme-light .border-slate-700,
+html.theme-light .border-slate-800,
+html.theme-light .border-slate-900,
+html.theme-light .dark\:border-slate-800,
+html.theme-light .dark\:border-slate-900 {
+  border-color: #d5d7db !important;
+}
+
+html.theme-light .text-slate-900,
+html.theme-light .text-slate-800,
+html.theme-light .text-indigo-600,
+html.theme-light .text-emerald-800,
+html.theme-light .text-rose-800 {
+  color: #0f172a !important;
+}
+
+html.theme-light .border-white,
+html.theme-light .bg-slate-50/40 {
+  background-color: #f8fafc !important;
+}
+
+html.dark {
+  color-scheme: dark;
+  --color-slate-50: #0b0b09;
+  --color-slate-100: #0f0f0d;
+  --color-slate-200: #1b1b15;
+  --color-slate-300: #262522;
+  --color-slate-400: #8b8a82;
+  --color-slate-500: #cfcfcf;
+  --color-slate-600: #e6e6e6;
+  --color-slate-700: #f2f2f2;
+  --color-slate-800: #fbfbfb;
+  --color-slate-900: #ffffff;
+
+  --color-paper: #0b0b09;
+  --color-sidebar: #0f0f0d;
+  --color-sidebar-border: #22221b;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.6);
+  --shadow-md: 0 8px 24px rgba(0,0,0,0.6);
+  --shadow-lg: 0 18px 48px rgba(0,0,0,0.7);
+}
