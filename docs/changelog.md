@@ -21,6 +21,16 @@ Tất cả các thay đổi đáng chú ý đối với project LingoFlow đư�
 - Motion library cho smooth animations (placeholder)
 - Express.js dependency cho backend (future-proofing)
 - Thêm hệ thống đăng nhập/đăng ký cục bộ với LocalStorage cho dữ liệu người dùng riêng
+- Hệ thống Backend hoàn chỉnh sử dụng Node.js, Express.js và MongoDB Atlas (Mongoose)
+- Xác thực người dùng bảo mật với JSON Web Token (JWT) và mã hóa mật khẩu bằng bcryptjs
+- API service layer (`apiService.ts`) đồng bộ hóa dữ liệu từ Frontend lên Cloud MongoDB thay thế LocalStorage
+- Tính năng Import/Export dữ liệu học tập và Reset dữ liệu qua API
+- Hỗ trợ cấu hình proxy và tệp cấu hình vercel.json sẵn sàng để deploy thực tế lên Vercel + Render
+
+### [FIXED]
+
+- Khắc phục lỗi đảo ngược bảng màu trong chế độ Dark theme, đảm bảo các lớp dark: hoạt động đúng chuẩn
+- Loại bỏ các quy tắc CSS ép buộc `!important` trong Light theme gây mờ chữ hoặc mất độ tương phản
 
 ### [PLANNED]
 
