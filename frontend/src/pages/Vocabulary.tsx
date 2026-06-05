@@ -16,10 +16,24 @@ import {
   HelpCircle
 } from 'lucide-react';
 
-export const Vocabulary: React.FC = () => {
+interface VocabularyProps {
+  searchValue?: string;
+  onSearchChange?: (val: string) => void;
+}
+
+export const Vocabulary: React.FC<VocabularyProps> = ({ searchValue = '', onSearchChange }) => {
   const { words, addWord, updateWord, deleteWord, toggleWordLearned } = useApp();
 
-  const [search, setSearch] = useState('');
+  const [localSearch, setLocalSearch] = useState('');
+  const search = onSearchChange ? searchValue : localSearch;
+
+  const handleSearchChange = (val: string) => {
+    setLocalSearch(val);
+    if (onSearchChange) {
+      onSearchChange(val);
+    }
+  };
+
   const [topicFilter, setTopicFilter] = useState('Tất cả');
   const [statusFilter, setStatusFilter] = useState('Tất cả');
 
@@ -34,6 +48,26 @@ export const Vocabulary: React.FC = () => {
   const [exampleInput, setExampleInput] = useState('');
   const [topicInput, setTopicInput] = useState('Gia đình');
   const [learnedInput, setLearnedInput] = useState(false);
+
+  // Hàm tự động lấy phiên âm IPA từ Free Dictionary API
+  const fetchAutoIpa = async (word: string) => {
+    const trimmedWord = word.trim();
+    if (!trimmedWord) return;
+    
+    try {
+      const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(trimmedWord.toLowerCase())}`);
+      if (!response.ok) return;
+      
+      const data = await response.json();
+      const phonetic = data[0]?.phonetic || data[0]?.phonetics?.find((p: any) => p.text)?.text;
+      
+      if (phonetic) {
+        setIpaInput(phonetic);
+      }
+    } catch (error) {
+      console.error('Lỗi khi lấy phiên âm tự động:', error);
+    }
+  };
 
   // Thu thập danh sách chủ đề duy nhất hiện có trong dữ liệu
   const availableTopics = useMemo(() => {
@@ -133,7 +167,7 @@ export const Vocabulary: React.FC = () => {
             type="text"
             placeholder="Tìm theo từ tiếng Anh hoặc nghĩa..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="w-full pl-11 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 text-slate-800 dark:text-slate-200"
           />
         </div>
@@ -317,6 +351,7 @@ export const Vocabulary: React.FC = () => {
                       placeholder="vd: Resilience"
                       value={wordInput}
                       onChange={(e) => setWordInput(e.target.value)}
+                      onBlur={(e) => fetchAutoIpa(e.target.value)}
                       className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200/50 dark:border-slate-850 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/25 text-slate-800 dark:text-slate-200"
                     />
                   </div>

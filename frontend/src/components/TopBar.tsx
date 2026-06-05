@@ -16,6 +16,8 @@ export const TopBar: React.FC<TopBarProps> = ({
   const { activeTab, setActiveTab, words, currentUser, logout } = useApp();
   const [localSearch, setLocalSearch] = useState(searchValue);
 
+  const search = onSearchChange ? searchValue : localSearch;
+
   const getTitle = () => {
     switch (activeTab) {
       case 'dashboard':
@@ -79,7 +81,7 @@ export const TopBar: React.FC<TopBarProps> = ({
             <input
               type="text"
               placeholder="Tìm kiếm từ vựng..."
-              value={localSearch}
+              value={search}
               onChange={handleInputChange}
               className="pl-12 pr-6 py-2.5 bg-slate-100 dark:bg-slate-900 border-none rounded-full text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 text-slate-850 dark:text-slate-200 w-64 md:w-80 transition-all shadow-inner"
             />

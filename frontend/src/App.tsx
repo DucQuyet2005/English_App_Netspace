@@ -24,7 +24,7 @@ const AppContent: React.FC = () => {
       case 'dashboard':
         return <Dashboard />;
       case 'vocabulary':
-        return <Vocabulary />;
+        return <Vocabulary searchValue={globalSearch} onSearchChange={setGlobalSearch} />;
       case 'flashcard':
         return <FlashcardsPage />;
       case 'quiz':
