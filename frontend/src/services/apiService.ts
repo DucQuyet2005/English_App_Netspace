@@ -28,10 +28,16 @@ async function apiFetch<T = any>(
     headers,
   });
 
-  const data = await res.json();
+  const text = await res.text();
+  let data: any = {};
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch (err) {
+    throw new Error(`Phản hồi từ server không đúng định dạng JSON. Vui lòng kiểm tra cấu hình URL API.`);
+  }
 
   if (!res.ok) {
-    throw new Error(data.message || 'Lỗi kết nối server.');
+    throw new Error(data.message || `Lỗi kết nối server (${res.status}).`);
   }
 
   return data;
