@@ -68,19 +68,22 @@ export const Dashboard: React.FC = () => {
       {/* Welcome Header */}
       <motion.div
         variants={itemVariants}
-        className="flex flex-col md:flex-row md:items-end justify-between gap-4 bg-gradient-to-r from-indigo-50/60 to-teal-50/60 dark:from-slate-900/45 dark:to-slate-950/40 p-6 md:p-8 rounded-3xl border border-indigo-100/30 dark:border-slate-800/60"
+        className="relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl p-8 md:p-10 rounded-[2rem] border border-white/60 dark:border-slate-800/60 shadow-lg shadow-indigo-900/5"
       >
-        <div>
-          <h3 className="text-2xl md:text-3xl font-serif-title text-slate-800 dark:text-slate-150 tracking-tight">
-            {`Chào mừng ${userName} đến với English Station 👋`}
+        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-indigo-400/10 dark:bg-indigo-500/10 blur-3xl rounded-full pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-48 h-48 bg-teal-400/10 dark:bg-teal-500/10 blur-3xl rounded-full pointer-events-none"></div>
+        
+        <div className="relative z-10">
+          <h3 className="text-3xl md:text-4xl font-serif-title text-slate-800 dark:text-slate-100 tracking-tight leading-tight">
+            Chào mừng <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-teal-600 dark:from-indigo-400 dark:to-teal-400">{userName}</span> 👋
           </h3>
-          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mt-2">
-            Hôm nay là một ngày tuyệt vời để ghi nhớ thêm {settings.dailyGoal} từ vựng mới và nâng cao vốn từ của bạn.
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-3 max-w-lg leading-relaxed">
+            Hôm nay là một ngày tuyệt vời để khám phá thêm {settings.dailyGoal} từ vựng mới. Hãy giữ vững ngọn lửa học tập nhé!
           </p>
         </div>
-        <div className="flex gap-2">
-          <span className="px-4 py-2 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-900/50 rounded-full text-xs font-extrabold flex items-center gap-2">
-            <Flame className="w-4 h-4 fill-amber-500 text-amber-500 animate-pulse" /> 
+        <div className="relative z-10 flex gap-2">
+          <span className="px-5 py-2.5 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md text-amber-600 dark:text-amber-400 border border-amber-200/50 dark:border-amber-900/30 rounded-2xl text-xs font-bold flex items-center gap-2 shadow-sm">
+            <Flame className="w-5 h-5 fill-amber-500 text-amber-500 animate-pulse" /> 
             15 ngày liên tiếp
           </span>
         </div>
@@ -88,55 +91,58 @@ export const Dashboard: React.FC = () => {
 
       {/* Bento Grid Stats */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Stat Card 1 - Số từ đã học */}
-        <div className="bg-white dark:bg-slate-950 border border-slate-200/50 dark:border-slate-850 p-6 rounded-2xl shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
-          <div className="flex items-start justify-between">
+        {/* Stat Card 1 */}
+        <div className="relative overflow-hidden bg-white/60 dark:bg-slate-950/60 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/60 p-7 rounded-3xl shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col justify-between hover:-translate-y-1">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 dark:bg-indigo-400/5 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+          <div className="relative z-10 flex items-start justify-between">
             <div>
-              <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Số từ đã học</p>
-              <h3 className="text-4xl font-black text-indigo-600 dark:text-indigo-400 mt-3">{learnedCount}</h3>
+              <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Từ đã thuộc</p>
+              <h3 className="text-5xl font-serif-title text-slate-800 dark:text-slate-100 mt-2">{learnedCount}</h3>
             </div>
-            <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-slate-900 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
+            <div className="w-14 h-14 rounded-2xl bg-indigo-50/80 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 border border-indigo-100/50 dark:border-indigo-500/20 shadow-inner">
               <BookOpen className="w-6 h-6" />
             </div>
           </div>
-          <div className="mt-5 flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400">
-            <span>🚀 Tăng trưởng liên tục</span>
+          <div className="relative z-10 mt-6 flex items-center gap-2 text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-500/10 w-fit px-3 py-1.5 rounded-lg">
+            <span>🚀 Tăng trưởng ổn định</span>
           </div>
         </div>
 
-        {/* Stat Card 2 - Số từ cần ôn */}
-        <div className="bg-white dark:bg-slate-950 border border-slate-200/50 dark:border-slate-850 border-l-4 border-l-amber-500 p-6 rounded-2xl shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
-          <div className="flex items-start justify-between">
+        {/* Stat Card 2 */}
+        <div className="relative overflow-hidden bg-white/60 dark:bg-slate-950/60 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/60 p-7 rounded-3xl shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col justify-between hover:-translate-y-1">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 dark:bg-amber-400/5 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+          <div className="relative z-10 flex items-start justify-between">
             <div>
-              <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Số từ cần luyện thêm</p>
-              <h3 className="text-4xl font-black text-amber-600 dark:text-amber-400 mt-3">{wordsToReview}</h3>
+              <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Cần ôn tập</p>
+              <h3 className="text-5xl font-serif-title text-slate-800 dark:text-slate-100 mt-2">{wordsToReview}</h3>
             </div>
-            <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-slate-900 flex items-center justify-center text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform">
+            <div className="w-14 h-14 rounded-2xl bg-amber-50/80 dark:bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-400 border border-amber-100/50 dark:border-amber-500/20 shadow-inner">
               <History className="w-6 h-6" />
             </div>
           </div>
-          <div className="mt-5 text-xs font-bold text-slate-500 dark:text-slate-400">
-            Sẵn sàng làm Flashcard đề xuất
+          <div className="relative z-10 mt-6 text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-50/80 dark:bg-slate-900 w-fit px-3 py-1.5 rounded-lg border border-slate-200/50 dark:border-slate-800">
+            Khuyên dùng thẻ Flashcard
           </div>
         </div>
 
-        {/* Stat Card 3 - Điểm Quiz */}
-        <div className="bg-white dark:bg-slate-950 border border-slate-200/50 dark:border-slate-850 p-6 rounded-2xl shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
-          <div className="flex items-start justify-between">
+        {/* Stat Card 3 */}
+        <div className="relative overflow-hidden bg-white/60 dark:bg-slate-950/60 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/60 p-7 rounded-3xl shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col justify-between hover:-translate-y-1">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-teal-500/5 dark:bg-teal-400/5 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+          <div className="relative z-10 flex items-start justify-between">
             <div>
-              <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Điểm Quiz trung bình</p>
-              <h3 className="text-4xl font-black text-teal-600 dark:text-teal-400 mt-3">
+              <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Điểm Quiz</p>
+              <h3 className="text-5xl font-serif-title text-slate-800 dark:text-slate-100 mt-2">
                 {avgScoreFormatted}
-                <span className="text-sm font-bold text-slate-400 dark:text-slate-500">/10</span>
+                <span className="text-lg font-medium text-slate-400 dark:text-slate-500 ml-1">/10</span>
               </h3>
             </div>
-            <div className="w-12 h-12 rounded-xl bg-teal-50 dark:bg-slate-900 flex items-center justify-center text-teal-600 dark:text-teal-400 group-hover:scale-110 transition-transform">
+            <div className="w-14 h-14 rounded-2xl bg-teal-50/80 dark:bg-teal-500/10 flex items-center justify-center text-teal-600 dark:text-teal-400 border border-teal-100/50 dark:border-teal-500/20 shadow-inner">
               <Award className="w-6 h-6" />
             </div>
           </div>
-          <div className="mt-5 w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+          <div className="relative z-10 mt-6 w-full bg-slate-100 dark:bg-slate-800/80 rounded-full h-2 overflow-hidden border border-slate-200/50 dark:border-slate-700/50">
             <div
-              className="bg-teal-500 h-full rounded-full transition-all duration-500"
+              className="bg-gradient-to-r from-teal-400 to-teal-500 h-full rounded-full transition-all duration-700 ease-out"
               style={{ width: `${avgQuizScore}%` }}
             ></div>
           </div>
@@ -145,38 +151,40 @@ export const Dashboard: React.FC = () => {
 
       {/* Biểu đồ và Tiếp cận nhanh */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Biểu đồ tiến bộ (vẽ bằng SVG chất lượng cao, hover mượt) */}
-        <div className="lg:col-span-8 bg-white dark:bg-slate-950 p-6 rounded-2xl border border-slate-200/50 dark:border-slate-850 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-8">
+        {/* Biểu đồ tiến bộ */}
+        <div className="lg:col-span-8 bg-white/60 dark:bg-slate-950/60 backdrop-blur-xl p-8 rounded-[2rem] border border-slate-200/60 dark:border-slate-800/60 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-10">
             <div>
-              <h4 className="text-lg font-serif-title text-slate-800 dark:text-slate-100">Tiến độ ghi nhớ từ mới</h4>
-              <p className="text-xs font-semibold text-slate-400 dark:text-slate-500">Lượng từ mới nạp theo các ngày trong tuần</p>
+              <h4 className="text-xl font-serif-title text-slate-800 dark:text-slate-100">Tiến độ ghi nhớ từ mới</h4>
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">Lượng từ mới nạp theo các ngày trong tuần</p>
             </div>
-            <span className="text-xs font-bold px-3 py-1 bg-slate-100 dark:bg-slate-900 rounded-lg text-slate-600 dark:text-slate-400 border border-slate-200/30">
+            <span className="text-xs font-bold px-4 py-2 bg-white dark:bg-slate-900 rounded-xl text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-slate-800/80 shadow-sm">
               7 ngày qua
             </span>
           </div>
 
-          <div className="h-64 flex items-end justify-between gap-4 pt-4 px-2 select-none">
+          <div className="h-64 flex items-end justify-between gap-3 md:gap-6 pt-4 px-2 select-none">
             {mockWeeklyData.map((val, idx) => {
               const barHeightPct = (val / maxWordCount) * 85;
               return (
-                <div key={idx} className="flex-1 flex flex-col items-center gap-2 group h-full justify-end">
+                <div key={idx} className="flex-1 flex flex-col items-center gap-3 group h-full justify-end">
                   {/* Tooltip */}
-                  <span className="opacity-0 group-hover:opacity-100 bg-slate-800 text-white text-[10px] font-extrabold px-1.5 py-1 rounded-md mb-1 absolute -translate-y-[220px] transition-all pointer-events-none shadow-md">
+                  <span className="opacity-0 group-hover:opacity-100 bg-slate-800/90 backdrop-blur text-white text-[11px] font-bold px-2.5 py-1.5 rounded-lg mb-2 absolute -translate-y-[230px] transition-all pointer-events-none shadow-lg">
                     {val} từ
                   </span>
                   
                   {/* Bar */}
-                  <div className="w-full bg-slate-50 dark:bg-slate-900 rounded-t-xl h-full flex flex-col justify-end overflow-hidden">
+                  <div className="w-full bg-slate-100/50 dark:bg-slate-800/30 rounded-2xl h-full flex flex-col justify-end overflow-hidden relative">
                     <motion.div
                       initial={{ height: 0 }}
                       animate={{ height: `${barHeightPct}%` }}
-                      transition={{ duration: 0.8, delay: idx * 0.05 }}
-                      className="bg-gradient-to-t from-indigo-500 to-indigo-400 dark:from-indigo-600 dark:to-indigo-500 rounded-t-xl w-full group-hover:from-indigo-400 group-hover:to-teal-400 transition-all cursor-pointer"
-                    />
+                      transition={{ duration: 1, type: "spring", bounce: 0.3, delay: idx * 0.05 }}
+                      className="bg-gradient-to-t from-indigo-500 to-indigo-400 dark:from-indigo-600 dark:to-indigo-400 rounded-2xl w-full group-hover:from-teal-400 group-hover:to-teal-300 transition-colors cursor-pointer relative overflow-hidden"
+                    >
+                      <div className="absolute inset-0 bg-white/20 w-full h-full transform -skew-x-12 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
+                    </motion.div>
                   </div>
-                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">{daysOfWeek[idx]}</span>
+                  <span className="text-[13px] font-semibold text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">{daysOfWeek[idx]}</span>
                 </div>
               );
             })}
@@ -185,72 +193,78 @@ export const Dashboard: React.FC = () => {
 
         {/* Cột Phụ: Truy cập nhanh & Mục tiêu ngày */}
         <div className="lg:col-span-4 flex flex-col gap-6">
-          <h4 className="text-lg font-serif-title text-slate-800 dark:text-slate-100">Truy cập nhanh</h4>
+          <h4 className="text-xl font-serif-title text-slate-800 dark:text-slate-100 px-1">Truy cập nhanh</h4>
           <div className="grid grid-cols-2 gap-4">
             <button
               onClick={() => setActiveTab('flashcard')}
-              className="flex flex-col items-start gap-4 p-5 bg-gradient-to-tr from-indigo-600 to-indigo-500 text-white rounded-2xl hover:shadow-lg hover:shadow-indigo-600/20 active:scale-[0.98] transition-all text-left"
+              className="group flex flex-col items-start gap-4 p-5 bg-gradient-to-br from-indigo-500 to-indigo-600 text-white rounded-3xl hover:shadow-xl hover:shadow-indigo-500/30 active:scale-[0.98] transition-all duration-300 text-left border border-indigo-400/30 relative overflow-hidden"
             >
-              <Layers className="w-6 h-6 p-1 bg-white/25 rounded-lg" />
-              <div className="mt-2">
-                <span className="text-xs font-bold block opacity-85">Thẻ học</span>
-                <span className="text-sm font-extrabold block mt-0.5">Flashcard</span>
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-125"></div>
+              <Layers className="w-7 h-7 p-1.5 bg-white/20 backdrop-blur-md rounded-xl" />
+              <div className="mt-2 relative z-10">
+                <span className="text-xs font-medium block text-indigo-100">Thẻ học</span>
+                <span className="text-base font-bold block mt-0.5">Flashcard</span>
               </div>
             </button>
 
             <button
               onClick={() => setActiveTab('quiz')}
-              className="flex flex-col items-start gap-4 p-5 bg-slate-50 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-850 hover:bg-slate-200/40 dark:hover:bg-slate-800 rounded-2xl active:scale-[0.98] transition-all text-left text-slate-800 dark:text-slate-100"
+              className="group flex flex-col items-start gap-4 p-5 bg-white/60 dark:bg-slate-950/60 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/60 hover:bg-white dark:hover:bg-slate-900 rounded-3xl active:scale-[0.98] transition-all duration-300 text-left text-slate-800 dark:text-slate-100 hover:shadow-md hover:-translate-y-1"
             >
-              <FileQuestion className="w-6 h-6 p-1 bg-teal-50 dark:bg-slate-800 text-teal-500 dark:text-teal-400 rounded-lg" />
+              <FileQuestion className="w-7 h-7 p-1.5 bg-teal-50 dark:bg-teal-500/10 text-teal-600 dark:text-teal-400 rounded-xl group-hover:scale-110 transition-transform" />
               <div className="mt-2">
-                <span className="text-xs font-bold block text-slate-500 dark:text-slate-400">Kiểm tra</span>
-                <span className="text-sm font-extrabold block mt-0.5">Mini Quiz</span>
+                <span className="text-xs font-medium block text-slate-500 dark:text-slate-400">Kiểm tra</span>
+                <span className="text-base font-bold block mt-0.5">Mini Quiz</span>
               </div>
             </button>
 
             <button
               onClick={() => setActiveTab('vocabulary')}
-              className="flex flex-col items-start gap-4 p-5 bg-slate-50 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-850 hover:bg-slate-200/40 dark:hover:bg-slate-800 rounded-2xl active:scale-[0.98] transition-all text-left text-slate-800 dark:text-slate-100"
+              className="group flex flex-col items-start gap-4 p-5 bg-white/60 dark:bg-slate-950/60 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/60 hover:bg-white dark:hover:bg-slate-900 rounded-3xl active:scale-[0.98] transition-all duration-300 text-left text-slate-800 dark:text-slate-100 hover:shadow-md hover:-translate-y-1"
             >
-              <BookOpen className="w-6 h-6 p-1 bg-indigo-50 dark:bg-slate-800 text-indigo-500 dark:text-indigo-400 rounded-lg" />
+              <BookOpen className="w-7 h-7 p-1.5 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl group-hover:scale-110 transition-transform" />
               <div className="mt-2">
-                <span className="text-xs font-bold block text-slate-500 dark:text-slate-400">Danh mục</span>
-                <span className="text-sm font-extrabold block mt-0.5">Từ vựng</span>
+                <span className="text-xs font-medium block text-slate-500 dark:text-slate-400">Danh mục</span>
+                <span className="text-base font-bold block mt-0.5">Từ vựng</span>
               </div>
             </button>
 
             <button
               onClick={() => setActiveTab('stats')}
-              className="flex flex-col items-start gap-4 p-5 bg-slate-50 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-850 hover:bg-slate-200/40 dark:hover:bg-slate-800 rounded-2xl active:scale-[0.98] transition-all text-left text-slate-800 dark:text-slate-100"
+              className="group flex flex-col items-start gap-4 p-5 bg-white/60 dark:bg-slate-950/60 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/60 hover:bg-white dark:hover:bg-slate-900 rounded-3xl active:scale-[0.98] transition-all duration-300 text-left text-slate-800 dark:text-slate-100 hover:shadow-md hover:-translate-y-1"
             >
-              <TrendingUp className="w-6 h-6 p-1 bg-pink-50 dark:bg-slate-800 text-pink-500 dark:text-teal-400 rounded-lg" />
+              <TrendingUp className="w-7 h-7 p-1.5 bg-rose-50 dark:bg-rose-500/10 text-rose-500 dark:text-rose-400 rounded-xl group-hover:scale-110 transition-transform" />
               <div className="mt-2">
-                <span className="text-xs font-bold block text-slate-500 dark:text-slate-400">Lịch sử</span>
-                <span className="text-sm font-extrabold block mt-0.5">Thống kê</span>
+                <span className="text-xs font-medium block text-slate-500 dark:text-slate-400">Lịch sử</span>
+                <span className="text-base font-bold block mt-0.5">Thống kê</span>
               </div>
             </button>
           </div>
 
           {/* Daily Goal Card */}
-          <div className="bg-slate-900 dark:bg-indigo-950 p-6 rounded-2xl border border-indigo-900/40 shadow-inner relative overflow-hidden flex flex-col justify-between">
+          <div className="bg-slate-900 dark:bg-slate-950 p-7 rounded-[2rem] border border-slate-800 shadow-xl relative overflow-hidden flex flex-col justify-between mt-2">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/10 blur-2xl rounded-full pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-indigo-500/10 blur-xl rounded-full pointer-events-none"></div>
             <div className="relative z-10 text-white">
-              <h5 className="font-bold text-sm tracking-wide text-indigo-300">Mục tiêu của ngày</h5>
-              <p className="text-xl font-extrabold mt-1">
-                {learnedToday} / {dailyLearingGoal} từ đã học
-              </p>
-              
-              <div className="mt-5 w-full bg-indigo-900/80 rounded-full h-2 overflow-hidden">
-                <div
-                  className="bg-teal-400 h-full rounded-full transition-all duration-500 shadow-[0_0_8px_rgba(45,212,191,0.6)]"
-                  style={{ width: `${goalProgressPercent}%` }}
-                ></div>
+              <div className="flex justify-between items-start">
+                <h5 className="font-semibold text-sm tracking-wide text-slate-400">Mục tiêu hôm nay</h5>
+                <div className="p-2 bg-white/10 backdrop-blur rounded-xl">
+                  <Award className="w-4 h-4 text-teal-400" />
+                </div>
               </div>
-            </div>
-            
-            {/* Decovative elements */}
-            <div className="absolute right-0 bottom-0 translate-x-4 translate-y-4 opacity-10">
-              <BookOpen className="w-32 h-32 text-indigo-50" />
+              <p className="text-4xl font-serif-title mt-4">
+                {learnedToday} <span className="text-xl text-slate-500 font-sans font-medium">/ {dailyLearingGoal}</span>
+              </p>
+              <p className="text-xs text-slate-400 mt-1 font-medium">Từ vựng đã ghi nhớ</p>
+              
+              <div className="mt-6 w-full bg-slate-800/80 rounded-full h-2.5 overflow-hidden border border-slate-700/50">
+                <div
+                  className="bg-gradient-to-r from-teal-500 to-teal-300 h-full rounded-full transition-all duration-1000 ease-out relative"
+                  style={{ width: `${goalProgressPercent}%` }}
+                >
+                  <div className="absolute top-0 right-0 bottom-0 w-10 bg-gradient-to-l from-white/30 to-transparent"></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

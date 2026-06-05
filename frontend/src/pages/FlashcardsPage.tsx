@@ -82,31 +82,34 @@ export const FlashcardsPage: React.FC = () => {
   return (
     <div className="space-y-8 max-w-3xl mx-auto flex flex-col items-center">
       {/* Selector & Progress Info */}
-      <div className="w-full bg-white dark:bg-slate-950 p-6 rounded-2xl border border-slate-200/50 dark:border-slate-850/80 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1">
-            <Tag className="w-4 h-4 text-indigo-500" /> Chọn chủ đề ôn tập
-          </span>
-          <select
-            value={selectedTopic}
-            onChange={(e) => {
-              setSelectedTopic(e.target.value);
-              setCurrentIndex(0);
-              setIsFlipped(false);
-            }}
-            className="bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 rounded-xl px-4 py-2 text-sm font-bold text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer"
-          >
-            {availableTopics.map(topic => (
-              <option key={topic} value={topic}>{topic}</option>
-            ))}
-          </select>
+      <div className="w-full bg-white/60 dark:bg-slate-950/60 backdrop-blur-xl p-6 rounded-[2rem] border border-white/60 dark:border-slate-800/60 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-6 hover:shadow-md transition-shadow">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center border border-indigo-100/50 dark:border-indigo-500/20 shadow-inner">
+            <Tag className="w-5 h-5 text-indigo-500" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Chủ đề ôn tập</span>
+            <select
+              value={selectedTopic}
+              onChange={(e) => {
+                setSelectedTopic(e.target.value);
+                setCurrentIndex(0);
+                setIsFlipped(false);
+              }}
+              className="bg-transparent border-none p-0 text-lg font-serif-title text-slate-800 dark:text-slate-200 focus:ring-0 cursor-pointer w-full max-w-[200px]"
+            >
+              {availableTopics.map(topic => (
+                <option key={topic} value={topic}>{topic}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {deck.length > 0 && (
-          <div className="text-right sm:text-right">
-            <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">Tiến trình học thẻ</span>
-            <p className="text-sm font-black text-indigo-600 dark:text-indigo-400 mt-0.5">
-              {currentIndex + 1} / {deck.length} thẻ
+          <div className="text-left sm:text-right flex flex-col items-start sm:items-end bg-white/50 dark:bg-slate-900/50 px-5 py-3 rounded-2xl border border-slate-100 dark:border-slate-800/50">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Tiến trình</span>
+            <p className="text-xl font-serif-title text-indigo-600 dark:text-indigo-400 mt-1">
+              {currentIndex + 1} <span className="text-sm font-sans font-medium text-slate-400">/ {deck.length}</span>
             </p>
           </div>
         )}
@@ -140,61 +143,68 @@ export const FlashcardsPage: React.FC = () => {
             >
               {/* FACE FRONT (Tiếng Anh) */}
               <div
-                className="absolute inset-0 bg-white dark:bg-slate-950 rounded-3xl p-8 md:p-12 border border-slate-200/50 dark:border-slate-850/80 shadow-lg flex flex-col items-center justify-between text-center overflow-hidden"
+                className="absolute inset-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-[2.5rem] p-10 md:p-14 border border-white/60 dark:border-slate-800/80 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] dark:shadow-indigo-900/10 flex flex-col items-center justify-between text-center overflow-hidden"
                 style={{ backfaceVisibility: 'hidden' }}
               >
-                {/* Accent band */}
-                <div className="absolute top-0 left-0 w-full h-2 bg-indigo-600" />
+                {/* Decorative gradients */}
+                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-500 via-teal-400 to-indigo-500"></div>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 dark:bg-indigo-400/5 blur-2xl rounded-bl-full pointer-events-none"></div>
                 
-                <span className="text-indigo-600 dark:text-indigo-400 text-xs font-extrabold uppercase tracking-widest bg-indigo-50 dark:bg-indigo-950/40 px-4 py-1.5 rounded-full">
-                  Tiếng Anh
+                <span className="text-indigo-600 dark:text-indigo-400 text-[11px] font-bold uppercase tracking-widest bg-indigo-50/80 dark:bg-indigo-500/10 px-4 py-2 rounded-xl border border-indigo-100/50 dark:border-indigo-500/20">
+                  Từ vựng tiếng Anh
                 </span>
 
-                <div className="my-auto space-y-3.5">
-                  <h2 className="text-4xl md:text-5xl font-serif-title text-indigo-900/90 dark:text-slate-100 italic tracking-tight">
+                <div className="my-auto space-y-4 relative z-10 w-full">
+                  <h2 className="text-5xl md:text-6xl font-serif-title text-slate-800 dark:text-slate-100 tracking-tight">
                     {activeCard.word}
                   </h2>
-                  <p className="text-base font-bold text-slate-450 dark:text-slate-500">
+                  <p className="text-lg font-medium text-slate-500 dark:text-slate-400 font-serif italic">
                     {activeCard.ipa}
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500 text-xs font-semibold animate-bounce">
+                <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500 text-xs font-bold bg-slate-50/50 dark:bg-slate-950/50 px-4 py-2 rounded-xl backdrop-blur-sm relative z-10 animate-bounce">
                   <RotateCw className="w-4 h-4" />
-                  <span>Chạm để lật thẻ xem nghĩa</span>
+                  <span>Chạm để lật xem nghĩa</span>
                 </div>
               </div>
 
               {/* FACE BACK (Nghĩa & Ví dụ) */}
               <div
-                className="absolute inset-0 bg-white dark:bg-slate-950 rounded-3xl p-8 md:p-12 border border-slate-200/50 dark:border-slate-850/80 shadow-lg flex flex-col items-center justify-between text-center"
+                className="absolute inset-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-[2.5rem] p-10 md:p-14 border border-white/60 dark:border-slate-800/80 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] dark:shadow-indigo-900/10 flex flex-col items-center justify-between text-center overflow-hidden"
                 style={{
                   backfaceVisibility: 'hidden',
                   transform: 'rotateY(180deg)'
                 }}
               >
-                {/* Accent band */}
-                <div className="absolute top-0 left-0 w-full h-2 bg-emerald-500" />
+                {/* Decorative gradients */}
+                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-teal-400 to-emerald-500"></div>
+                <div className="absolute bottom-0 left-0 w-32 h-32 bg-teal-500/5 dark:bg-teal-400/5 blur-2xl rounded-tr-full pointer-events-none"></div>
 
-                <span className="text-emerald-600 dark:text-emerald-400 text-xs font-extrabold uppercase tracking-widest bg-emerald-50 dark:bg-emerald-950/40 px-4 py-1.5 rounded-full">
+                <span className="text-teal-600 dark:text-teal-400 text-[11px] font-bold uppercase tracking-widest bg-teal-50/80 dark:bg-teal-500/10 px-4 py-2 rounded-xl border border-teal-100/50 dark:border-teal-500/20">
                   Nghĩa Tiếng Việt
                 </span>
 
-                <div className="my-auto space-y-6 w-full">
-                  <h3 className="text-3xl font-black text-slate-800 dark:text-slate-100">
+                <div className="my-auto space-y-6 w-full relative z-10">
+                  <h3 className="text-4xl font-serif-title text-slate-800 dark:text-slate-100">
                     {activeCard.meaning}
                   </h3>
                   
-                  <div className="bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-850/80 p-5 rounded-2xl w-full">
-                    <p className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Ví dụ minh họa</p>
-                    <p className="text-sm font-bold text-slate-650 dark:text-slate-300 italic leading-relaxed">
-                      "{activeCard.example}"
+                  <div className="bg-slate-50/80 dark:bg-slate-950/50 border border-slate-100 dark:border-slate-800/80 p-6 rounded-2xl w-full relative overflow-hidden backdrop-blur-sm">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-amber-400/50 dark:bg-amber-500/30"></div>
+                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Ví dụ minh họa</p>
+                    <p className="text-base font-serif italic text-slate-600 dark:text-slate-300 leading-relaxed">
+                      <span className="text-2xl leading-none text-amber-200 dark:text-amber-900/40 mr-1">"</span>
+                      {activeCard.example}
+                      <span className="text-2xl leading-none text-amber-200 dark:text-amber-900/40 ml-1">"</span>
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-slate-455 text-xs font-semibold">
-                  <span className="text-amber-500 text-xs font-bold">Chủ đề: {activeCard.topic}</span>
+                <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold relative z-10">
+                  <span className="bg-amber-50/80 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-100/50 dark:border-amber-500/20 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest">
+                    Chủ đề: {activeCard.topic}
+                  </span>
                 </div>
               </div>
             </div>
@@ -204,17 +214,21 @@ export const FlashcardsPage: React.FC = () => {
           <div className="flex gap-6 w-full max-w-md">
             <button
               onClick={() => handleNext(false)}
-              className="flex-1 flex flex-col items-center justify-center gap-2.5 p-5 bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/40 rounded-2xl hover:shadow-lg hover:shadow-rose-500/10 active:scale-95 transition-all group cursor-pointer"
+              className="flex-1 flex flex-col items-center justify-center gap-3 p-5 bg-white/60 dark:bg-slate-950/60 backdrop-blur-xl text-rose-600 dark:text-rose-400 border border-rose-100/60 dark:border-rose-900/40 rounded-[2rem] hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:border-rose-200 dark:hover:border-rose-800/50 hover:shadow-xl hover:shadow-rose-500/10 hover:-translate-y-1 active:scale-[0.98] transition-all duration-300 group cursor-pointer"
             >
-              <XCircle className="w-8 h-8 group-hover:scale-110 transition-transform" />
-              <span className="text-xs font-black uppercase tracking-wider">Chưa nhớ thẻ</span>
+              <div className="p-3 bg-rose-50 dark:bg-rose-500/10 rounded-2xl group-hover:bg-rose-100 dark:group-hover:bg-rose-500/20 transition-colors">
+                <XCircle className="w-8 h-8 group-hover:scale-110 transition-transform" />
+              </div>
+              <span className="text-[11px] font-bold uppercase tracking-widest">Chưa nhớ</span>
             </button>
             <button
               onClick={() => handleNext(true)}
-              className="flex-1 flex flex-col items-center justify-center gap-2.5 p-5 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/40 rounded-2xl hover:shadow-lg hover:shadow-emerald-500/10 active:scale-95 transition-all group cursor-pointer"
+              className="flex-1 flex flex-col items-center justify-center gap-3 p-5 bg-white/60 dark:bg-slate-950/60 backdrop-blur-xl text-teal-600 dark:text-teal-400 border border-teal-100/60 dark:border-teal-900/40 rounded-[2rem] hover:bg-teal-50 dark:hover:bg-teal-900/20 hover:border-teal-200 dark:hover:border-teal-800/50 hover:shadow-xl hover:shadow-teal-500/10 hover:-translate-y-1 active:scale-[0.98] transition-all duration-300 group cursor-pointer"
             >
-              <CheckCircle className="w-8 h-8 group-hover:scale-110 transition-transform" />
-              <span className="text-xs font-black uppercase tracking-wider">Đã nhớ thẻ</span>
+              <div className="p-3 bg-teal-50 dark:bg-teal-500/10 rounded-2xl group-hover:bg-teal-100 dark:group-hover:bg-teal-500/20 transition-colors">
+                <CheckCircle className="w-8 h-8 group-hover:scale-110 transition-transform" />
+              </div>
+              <span className="text-[11px] font-bold uppercase tracking-widest">Đã nhớ</span>
             </button>
           </div>
         </div>

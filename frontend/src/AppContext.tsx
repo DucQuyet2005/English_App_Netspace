@@ -28,8 +28,8 @@ interface FrontendUser {
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
-  darkMode: false,
-  theme: 'normal',
+  darkMode: true,
+  theme: 'dark',
   defaultQuizSize: 10,
   dailyGoal: 5,
 };
@@ -60,7 +60,7 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 const applyTheme = (theme?: AppSettings['theme'], preferDark?: boolean) => {
-  const t = theme ?? (preferDark ? 'dark' : 'normal');
+  const t = theme ?? (preferDark ? 'dark' : 'dark');
   if (t === 'dark') {
     document.documentElement.classList.add('dark');
     document.documentElement.classList.remove('theme-light');
@@ -94,6 +94,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (userSettings) {
         setSettings(userSettings);
         applyTheme(userSettings.theme, userSettings.darkMode);
+      } else {
+        applyTheme(DEFAULT_SETTINGS.theme, DEFAULT_SETTINGS.darkMode);
       }
     } catch (error) {
       console.error('Failed to load user data:', error);
@@ -183,8 +185,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setWords([]);
     setAttempts([]);
     setSettings(DEFAULT_SETTINGS);
-    document.documentElement.classList.remove('dark');
-    document.documentElement.classList.remove('theme-light');
+    applyTheme(DEFAULT_SETTINGS.theme, DEFAULT_SETTINGS.darkMode);
     setActiveTabState('dashboard');
   };
 
@@ -258,14 +259,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       await apiResetData();
       // Reload data from server
-      await loadUserData({
-        darkMode: false,
-        theme: 'normal',
-        defaultQuizSize: 10,
-        dailyGoal: 5,
-      });
-      document.documentElement.classList.remove('dark');
-      document.documentElement.classList.remove('theme-light');
+      await loadUserData(DEFAULT_SETTINGS);
+      applyTheme(DEFAULT_SETTINGS.theme, DEFAULT_SETTINGS.darkMode);
       setActiveTabState('dashboard');
     } catch (error) {
       console.error('Failed to reset data:', error);
