@@ -19,6 +19,21 @@ graph TD
 
 ---
 
+## 0. Đảm bảo mã nguồn trên GitHub đã được cập nhật (Quan trọng)
+
+Trước khi deploy, hệ thống Render và Vercel sẽ kéo code từ nhánh `main` (hoặc nhánh bạn chỉ định) trên GitHub về để cài đặt. Nếu bạn đang code ở nhánh khác (như `bug/theme`), hãy đảm bảo bạn đã gộp (merge) code vào `main`.
+
+1. **Kiểm tra trạng thái code cục bộ**:
+   Mở terminal trong thư mục dự án và gộp nhánh nếu cần:
+   ```bash
+   git checkout main
+   git merge bug/theme
+   git push origin main
+   ```
+2. Mở trình duyệt và vào trang GitHub của dự án, kiểm tra xem commit mới nhất đã xuất hiện ở nhánh `main` chưa.
+
+---
+
 ## 1. Chuẩn bị cơ sở dữ liệu (MongoDB Atlas)
 
 Trước khi cấu hình Server, bạn cần có một cơ sở dữ liệu MongoDB chạy trên đám mây.
@@ -56,14 +71,17 @@ Render là dịch vụ lý tưởng để chạy Express server NodeJS miễn ph
 3. Cấu hình các thông tin cơ bản:
    * **Name**: `lingoflow-backend` (hoặc tên tùy ý).
    * **Region**: Trùng vùng với MongoDB Atlas (Ví dụ: `Singapore (Southeast Asia)`).
-   * **Branch**: `main` (hoặc nhánh chứa code backend mới nhất).
+   * **Branch**: `main` (Nhánh bạn vừa push code lên).
    * **Root Directory**: `backend` (Cực kỳ quan trọng để Render định vị đúng code Node.js).
    * **Runtime**: `Node`.
    * **Build Command**: `npm install && npm run build`
    * **Start Command**: `node dist/index.js`
 
 ### Thiết lập biến môi trường (Environment Variables):
-Trong mục **Advanced** -> **Add Environment Variable**, thêm các khóa sau:
+Trong mục **Advanced** -> **Add Environment Variable**, thêm các khóa sau. 
+
+> [!TIP]
+> **Sử dụng tính năng dán hàng loạt (Secret File/Raw Editor):** Bạn có thể nhấn vào nút **"Add from .env"** (hoặc tab Secret File), sau đó copy toàn bộ nội dung trong file `.env` ở dưới máy bạn và paste vào. Render sẽ tự động chia tách.
 
 | Tên biến (Key) | Giá trị (Value) | Mô tả |
 | :--- | :--- | :--- |
@@ -93,7 +111,10 @@ Vercel là nền tảng tốt nhất cho các dự án React Vite.
    * **Install Command**: `npm install`
 
 ### Thiết lập biến môi trường (Environment Variables):
-Mở rộng mục **Environment Variables** và thêm biến liên kết với Backend:
+Mở rộng mục **Environment Variables** và thêm biến liên kết với Backend.
+
+> [!TIP]
+> **Dán trực tiếp .env trên Vercel:** Copy dòng `VITE_API_URL=https://...` từ file `.env` local của bạn. Nhấp vào ô **Key** đầu tiên trên Vercel và nhấn dán (`Ctrl+V`). Vercel tự động tách thành Key/Value.
 
 | Tên biến (Key) | Giá trị (Value) | Mô tả |
 | :--- | :--- | :--- |
@@ -111,12 +132,18 @@ Mở rộng mục **Environment Variables** và thêm biến liên kết với B
   - Đảm bảo `FRONTEND_URL` trong mục biến môi trường của Render trùng khớp hoàn toàn với địa chỉ trang Vercel (ví dụ: `https://lingoflow-xxxx.vercel.app` - không có dấu gạch chéo `/` ở cuối).
   - Khởi động lại (Redeploy) Backend trên Render sau khi sửa đổi.
 
-### 2. Lỗi Trang trắng khi reload ở URL con (ví dụ: `/vocabulary` hoặc `/quiz`)
+### 2. Lỗi "Unexpected end of JSON input" trên Frontend
+* **Triệu chứng**: Chạy nội bộ bình thường nhưng trên mạng lại trắng trang, lỗi JSON.
+* **Cách sửa**: 
+  - Đảm bảo nhánh code bạn chọn deploy trên Vercel đã có các commit Backend mới nhất.
+  - Chắc chắn đã thêm biến `VITE_API_URL` trỏ vào URL Render trên Vercel. Không có biến này, Vercel tự gọi vào chính nó và trả về giao diện HTML gây ra lỗi Parse JSON.
+
+### 3. Lỗi Trang trắng khi reload ở URL con (ví dụ: `/vocabulary` hoặc `/quiz`)
 * **Triệu chứng**: Khi bấm F5 tải lại các trang khác Dashboard, Vercel trả về lỗi 404.
 * **Cách sửa**: 
-  - File cấu hình [vercel.json](file:///e:/User/Work_Space/Netspace/English_App_Netspace/frontend/vercel.json) đã được tạo sẵn trong thư mục `frontend` để tự động điều hướng tất cả URL về `index.html` (SPA Routing). Đảm bảo tệp này đã được đẩy lên GitHub thành công.
+  - File cấu hình `vercel.json` đã được tạo sẵn trong thư mục `frontend` để tự động điều hướng tất cả URL về `index.html` (SPA Routing). Đảm bảo tệp này đã được đẩy lên GitHub thành công.
 
-### 3. Server không thể kết nối tới Database
+### 4. Server không thể kết nối tới Database
 * **Triệu chứng**: Log của Render hiển thị lỗi `MongooseServerSelectionError`.
 * **Cách sửa**: 
   - Truy cập MongoDB Atlas và kiểm tra lại Network Access đã kích hoạt IP `0.0.0.0/0` chưa.
