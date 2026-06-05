@@ -28,11 +28,15 @@ Tất cả các thay đổi đáng chú ý đối với project LingoFlow đư�
 - API service layer (`apiService.ts`) đồng bộ hóa dữ liệu từ Frontend lên Cloud MongoDB thay thế LocalStorage
 - Tính năng Import/Export dữ liệu học tập và Reset dữ liệu qua API
 - Hỗ trợ cấu hình proxy và tệp cấu hình vercel.json sẵn sàng để deploy thực tế lên Vercel + Render
+- Thiết kế lại toàn bộ giao diện theo phong cách Premium Glassmorphism sang trọng (Dashboard, Vocabulary, Flashcards, Quiz).
+- Cấu hình chế độ tối (Dark Mode) làm giao diện mặc định lúc tải trang ban đầu.
+- Cấu hình phân giải CORS tự động cho các subdomains của dự án trên Vercel tại Backend (`backend/src/index.ts`).
 
 ### [FIXED]
 
 - Khắc phục lỗi đảo ngược bảng màu trong chế độ Dark theme, đảm bảo các lớp dark: hoạt động đúng chuẩn
 - Loại bỏ các quy tắc CSS ép buộc `!important` trong Light theme gây mờ chữ hoặc mất độ tương phản
+- Khắc phục lỗi chặn CORS trên môi trường deploy thực tế khi Frontend Vercel gọi API trên Render.
 
 ### [PLANNED]
 

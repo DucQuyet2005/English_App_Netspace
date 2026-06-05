@@ -25,6 +25,8 @@ Trước đây, ứng dụng lưu trữ dữ liệu hoàn toàn bằng LocalStor
 Chúng tôi cũng đã tiến hành nâng cấp lớn cho giao diện và trải nghiệm tương tác với từ vựng:
 - **Đồng bộ hóa thanh tìm kiếm (Search Bar) hai chiều:** Thiết lập cơ chế binding dữ liệu thời gian thực giữa ô Tìm kiếm trên thanh tiêu đề (`TopBar`) và ô tìm kiếm chính trong màn quản lý (`Vocabulary.tsx`), tạo sự nhất quán và phản hồi nhanh chóng cho người dùng.
 - **Tự động điền phiên âm IPA:** Tích hợp với **Free Dictionary API** công khai. Khi người dùng nhập một từ tiếng Anh mới, hệ thống sẽ tự động gọi API ở sự kiện `onBlur` để tìm kiếm và điền sẵn phiên âm chuẩn IPA tương ứng, giúp tiết kiệm thời gian nhập liệu đáng kể mà vẫn giữ được tính linh hoạt khi cần chỉnh sửa thủ công.
+- **Nâng cấp Giao diện Premium Glassmorphism:** Tái thiết kế toàn bộ các trang chính (Dashboard bento grid, Thẻ từ vựng, Flashcards 3D lật mặt và Mini Quiz) theo phong cách kính mờ sang trọng kết hợp các hiệu ứng chuyển động mượt mà bằng `motion/react`, font Serif cao cấp cho từ vựng và thiết kế bo góc sâu.
+- **Cấu hình Dark Mode làm mặc định:** Chuyển đổi trạng thái mặc định của ứng dụng sang Dark Mode ngay từ thẻ `<html>` trong `index.html` và cài đặt ban đầu của `AppContext.tsx` nhằm ngăn chặn hiện tượng chớp sáng (white flash) khi vừa tải trang và mang lại trải nghiệm ban đêm dịu mắt.
 - **Khắc phục lỗi hiển thị Dark Mode:** Sửa lỗi đảo ngược bảng màu khi chuyển sang chế độ tối, đảm bảo các class `dark:` của TailwindCSS hoạt động chuẩn xác trên toàn hệ thống.
 - **Tối ưu hiển thị Light Mode:** Loại bỏ các quy tắc CSS ép buộc (`!important`) không cần thiết gây mờ chữ hoặc giảm độ tương phản ở giao diện sáng, giúp chữ hiển thị sắc nét và dễ đọc hơn.
 
@@ -35,8 +37,9 @@ Hệ thống đã được thiết lập sẵn sàng để triển khai lên cá
 - **Khắc phục lỗi Tích hợp hệ thống:**
   - *Fix lỗi biên dịch Local:* Khắc phục sự cố không nhận diện được package `express` và `nodemon` trên môi trường Windows PowerShell thông qua việc xử lý Execution Policy và xung đột port (`EADDRINUSE 5000`).
   - *Sửa lỗi Gọi API trên Production (Lỗi 405 Method Not Allowed & Parsing JSON):* Đã điều tra và tìm ra nguyên nhân gây lỗi khi gọi hàm login/register lúc deploy. Lỗi bắt nguồn từ việc thiết lập thiếu biến môi trường `VITE_API_URL` trên host static, khiến Request POST bị trả về mã HTML thay vì JSON. Đã đưa ra quy trình chuẩn để cấu hình lại CORS trên Backend (`FRONTEND_URL`) và biến môi trường trên Frontend, đảm bảo kết nối mượt mà khi hệ thống lên sóng.
+  - *Sửa lỗi chặn CORS trên Deploy:* Tối ưu hóa bộ lọc CORS ở Backend (`backend/src/index.ts`) để tự động nhận diện và cho phép truy cập động đối với mọi subdomain xem trước hoặc chính thức của dự án trên Vercel (dạng `*.vercel.app` tương ứng), giải quyết dứt điểm lỗi Preflight request bị từ chối từ Frontend Vercel.
 
 ---
 
 **Kết luận:** 
-Ngày làm việc hôm nay đánh dấu bước ngoặt đưa LingoFlow từ một ứng dụng Frontend đơn giản trở thành một hệ thống Fullstack vững chắc, sẵn sàng phục vụ nhiều người dùng với cơ sở dữ liệu và xác thực bảo mật an toàn. Các lỗi về giao tiếp API giữa Frontend và Backend ở cả môi trường Local và Production đều đã được xử lý triệt để.
+Ngày làm việc hôm nay đánh dấu bước ngoặt đưa LingoFlow từ một ứng dụng Frontend đơn giản trở thành một hệ thống Fullstack vững chắc, sở hữu giao diện Glassmorphism đỉnh cao và sẵn sàng phục vụ nhiều người dùng với cơ sở dữ liệu, xác thực bảo mật an toàn. Các lỗi giao tiếp API hay cấu hình CORS ở môi trường Production đều đã được giải quyết triệt để.
