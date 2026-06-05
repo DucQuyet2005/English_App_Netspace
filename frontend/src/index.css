@@ -128,72 +128,21 @@ html.theme-light {
   --shadow-lg: 0 18px 48px rgba(15, 23, 42, 0.12);
 }
 
-html.theme-light body {
-  background-color: var(--color-slate-50);
-  color: var(--color-slate-800);
-}
 
-html.theme-light .text-slate-800,
-html.theme-light .text-slate-700,
-html.theme-light .text-slate-600,
-html.theme-light .text-slate-500,
-html.theme-light .text-slate-400,
-html.theme-light .text-slate-300 {
-  color: #0f172a !important;
-}
-
-html.theme-light .bg-slate-50,
-html.theme-light .bg-slate-100,
-html.theme-light .bg-slate-200,
-html.theme-light .bg-slate-300,
-html.theme-light .bg-white,
-html.theme-light .bg-sidebar,
-html.theme-light .bg-slate-900,
-html.theme-light .bg-slate-950,
-html.theme-light .bg-slate-800,
-html.theme-light .bg-slate-700,
-html.theme-light .bg-slate-600 {
-  background-color: #ffffff !important;
-}
-
-html.theme-light .border-slate-200,
-html.theme-light .border-slate-300,
-html.theme-light .border-slate-400,
-html.theme-light .border-slate-500,
-html.theme-light .border-slate-600,
-html.theme-light .border-slate-700,
-html.theme-light .border-slate-800,
-html.theme-light .border-slate-900,
-html.theme-light .dark\:border-slate-800,
-html.theme-light .dark\:border-slate-900 {
-  border-color: #d5d7db !important;
-}
-
-html.theme-light .text-slate-900,
-html.theme-light .text-slate-800,
-html.theme-light .text-indigo-600,
-html.theme-light .text-emerald-800,
-html.theme-light .text-rose-800 {
-  color: #0f172a !important;
-}
-
-html.theme-light .border-white,
-html.theme-light .bg-slate-50/40 {
-  background-color: #f8fafc !important;
-}
 
 html.dark {
   color-scheme: dark;
-  --color-slate-50: #0b0b09;
-  --color-slate-100: #0f0f0d;
-  --color-slate-200: #1b1b15;
-  --color-slate-300: #262522;
-  --color-slate-400: #8b8a82;
-  --color-slate-500: #cfcfcf;
-  --color-slate-600: #e6e6e6;
-  --color-slate-700: #f2f2f2;
-  --color-slate-800: #fbfbfb;
-  --color-slate-900: #ffffff;
+  --color-slate-50: #ffffff;
+  --color-slate-100: #fbfbfb;
+  --color-slate-200: #f2f2f2;
+  --color-slate-300: #e6e6e6;
+  --color-slate-400: #cfcfcf;
+  --color-slate-500: #8b8a82;
+  --color-slate-600: #262522;
+  --color-slate-700: #22221b;
+  --color-slate-800: #1b1b15;
+  --color-slate-900: #0f0f0d;
+  --color-slate-950: #0b0b09;
 
   --color-paper: #0b0b09;
   --color-sidebar: #0f0f0d;
