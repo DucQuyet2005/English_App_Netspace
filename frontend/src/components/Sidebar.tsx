@@ -8,10 +8,16 @@ import {
   FileQuestion,
   TrendingUp,
   Settings,
-  User
+  User,
+  X
 } from 'lucide-react';
 
-export const Sidebar: React.FC = () => {
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
   const { activeTab, setActiveTab, words, currentUser, settings } = useApp();
 
   const theme = settings.theme ?? (settings.darkMode ? 'dark' : 'normal');
@@ -39,69 +45,96 @@ export const Sidebar: React.FC = () => {
   };
 
   return (
-    <aside className={`fixed left-0 top-0 h-full w-72 h-screen hidden md:flex flex-col border-r z-50 transition-colors duration-300 ${sidebarThemeClasses}`}>
-      {/* Brand Logo */}
-      <div className="p-8">
-        <h1 className="text-3xl font-serif-title text-indigo-600 dark:text-indigo-300 italic tracking-tight">
-          LingoFlow
-        </h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">
-          Hành trình học tiếng Anh
-        </p>
-      </div>
+    <>
+      {/* Mobile Backdrop Overlay */}
+      {isOpen && (
+        <div
+          onClick={onClose}
+          className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-45 md:hidden"
+        />
+      )}
 
-      {/* Main Navigation */}
-      <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto">
-        {menuItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeTab === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center gap-4 px-6 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                isActive
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/25 dark:shadow-indigo-600/10 scale-[1.02]'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800/60 hover:text-indigo-600 dark:hover:text-indigo-400'
-              }`}
-            >
-              <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-slate-500 dark:text-slate-400 group-hover:text-indigo-600'}`} />
-              <span>{item.label}</span>
-            </button>
-          );
-        })}
-      </nav>
-
-      {/* Footer Controls & User Info */}
-      <div className="p-4 border-t border-slate-200/60 dark:border-slate-800 space-y-4">
-        <button
-          onClick={() => setActiveTab('settings')}
-          className={`w-full flex items-center gap-4 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${
-            activeTab === 'settings'
-              ? 'bg-indigo-600 text-white shadow-lg'
-              : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800 hover:text-indigo-600'
-          }`}
-        >
-          <Settings className="w-5 h-5 text-slate-500 dark:text-slate-400" />
-          <span>Cài đặt</span>
-        </button>
-
-        {/* User Card */}
-        <div className="flex items-center gap-4 px-4 py-3 bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800/80 rounded-2xl shadow-sm transition-colors">
-          <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-slate-800 flex items-center justify-center text-indigo-600 dark:text-indigo-400 border border-indigo-100/40 dark:border-slate-700">
-            <User className="w-5 h-5" />
+      <aside className={`fixed left-0 top-0 h-full w-72 h-screen flex flex-col border-r z-50 transition-transform duration-300 ${
+        isOpen ? 'translate-x-0' : '-translate-x-full'
+      } md:translate-x-0 ${sidebarThemeClasses}`}>
+        {/* Brand Logo & Close Button */}
+        <div className="p-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-serif-title text-indigo-600 dark:text-indigo-300 italic tracking-tight">
+              LingoFlow
+            </h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">
+              Hành trình học tiếng Anh
+            </p>
           </div>
-          <div className="min-w-0">
-            <p className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">{currentUser?.displayName ?? 'Người dùng'}</p>
-            <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5 truncate max-w-[180px]">
-              {currentUser?.email ?? 'Chưa đăng nhập'}
-            </p>
-            <p className="text-3xs font-medium text-emerald-600 dark:text-emerald-400 mt-0.5">
-              Cấp độ: {getLevel(learnedCount)}
-            </p>
+          {/* Close button on mobile */}
+          <button
+            onClick={onClose}
+            className="p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl md:hidden transition-colors cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Main Navigation */}
+        <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  setActiveTab(item.id);
+                  if (onClose) onClose();
+                }}
+                className={`w-full flex items-center gap-4 px-6 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                  isActive
+                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/25 dark:shadow-indigo-600/10 scale-[1.02]'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800/60 hover:text-indigo-600 dark:hover:text-indigo-400'
+                }`}
+              >
+                <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-slate-500 dark:text-slate-400 group-hover:text-indigo-600'}`} />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Footer Controls & User Info */}
+        <div className="p-4 border-t border-slate-200/60 dark:border-slate-800 space-y-4">
+          <button
+            onClick={() => {
+              setActiveTab('settings');
+              if (onClose) onClose();
+            }}
+            className={`w-full flex items-center gap-4 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${
+              activeTab === 'settings'
+                ? 'bg-indigo-600 text-white shadow-lg'
+                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800 hover:text-indigo-600'
+            }`}
+          >
+            <Settings className="w-5 h-5 text-slate-500 dark:text-slate-400" />
+            <span>Cài đặt</span>
+          </button>
+
+          {/* User Card */}
+          <div className="flex items-center gap-4 px-4 py-3 bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800/80 rounded-2xl shadow-sm transition-colors">
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-slate-800 flex items-center justify-center text-indigo-600 dark:text-indigo-400 border border-indigo-100/40 dark:border-slate-700">
+              <User className="w-5 h-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">{currentUser?.displayName ?? 'Người dùng'}</p>
+              <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5 truncate max-w-[180px]">
+                {currentUser?.email ?? 'Chưa đăng nhập'}
+              </p>
+              <p className="text-3xs font-medium text-emerald-600 dark:text-emerald-400 mt-0.5">
+                Cấp độ: {getLevel(learnedCount)}
+              </p>
+            </div>
           </div>
         </div>
-      </div>
-    </aside>
+      </aside>
+    </>
   );
 };
