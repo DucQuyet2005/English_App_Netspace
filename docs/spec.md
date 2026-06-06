@@ -4,240 +4,203 @@
 
 ## 1. Tổng Quan Sản Phẩm
 
-LingoFlow là một ứng dụng web học tiếng Anh toàn diện, kết hợp công nghệ Spaced Repetition (lặp lại cách khoảng) với giao diện thân thiện người dùng. Ứng dụng hỗ trợ cả giao diện Desktop và Mobile, cho phép người học quản lý từ vựng, luyện tập qua flashcard, làm quiz và theo dõi tiến độ.
+LingoFlow là một ứng dụng web học tiếng Anh toàn diện, kết hợp công nghệ Spaced Repetition (lặp lại cách khoảng) theo hệ thống Leitner với kiến trúc Client-Server hoàn chỉnh. Ứng dụng hỗ trợ cả giao diện Desktop và Mobile, cho phép người học đăng ký tài khoản cá nhân, quản lý từ vựng, luyện tập qua flashcard, làm quiz trắc nghiệm và theo dõi tiến độ học tập trực quan. Tất cả dữ liệu học tập được đồng bộ và lưu trữ bảo mật trên đám mây.
+
+---
 
 ## 2. Tính Năng Chính
 
-### 2.1 Dashboard (Bảng Điều Khiển)
+### 2.1 Đăng nhập / Đăng ký & Bảo mật (Authentication)
 
-- **Tổng quan** tóm tắt thông tin học tập
-- **Thống kê nhanh**: Tổng từ vựng, từ đã học, từ cần ôn tập
-- **Gợi ý hành động** tiếp theo: từ cần ôn tập, quiz đề xuất
-- **Biểu đồ trực quan** tiến độ hôm nay
+- **Đăng ký tài khoản**: Người dùng tạo tài khoản bằng email, mật khẩu và tên hiển thị. Mật khẩu được băm bảo mật trước khi lưu vào cơ sở dữ liệu.
+- **Đăng nhập**: Xác thực người dùng và cấp mã định danh JWT (JSON Web Token) để duy trì phiên làm việc.
+- **Quản lý phiên (Session)**: Token được lưu trữ cục bộ phía client để tự động đăng nhập trong các lần truy cập tiếp theo.
+- **Phân quyền dữ liệu**: Đảm bảo mỗi tài khoản có không gian học tập riêng biệt, dữ liệu từ vựng và kết quả kiểm tra được bảo mật hoàn toàn.
+- **Đăng xuất**: Xóa phiên làm việc, xóa token cục bộ và chuyển hướng về màn hình đăng nhập.
 
-### 2.2 Quản Lý Từ Vựng (Vocabulary)
+### 2.2 Dashboard (Bảng Điều Khiển)
 
-- **Thêm từ mới**: Thêm từ, IPA, nghĩa, ví dụ, chủ đề
-- **Danh sách từ**: Xem tất cả từ đã thêm
-- **Tìm kiếm & lọc**:
-  - Tìm kiếm theo từ, nghĩa
-  - Lọc theo chủ đề (Gia đình, Thực phẩm, v.v.)
-  - Lọc theo trạng thái (Đã học / Chưa học)
-  - Lọc theo hộp (Box 1-5 trong Leitner system)
-- **Chỉnh sửa từ**: Cập nhật thông tin từ vựng
-- **Xóa từ**: Xóa từ khỏi danh sách
-- **Đánh dấu trạng thái**: Đánh dấu từ là đã học / chưa học
-- **Sắp xếp**: Theo ngày tạo, trạng thái học, hộp
+- **Tổng quan** tóm tắt thông tin học tập cá nhân.
+- **Thống kê nhanh**: Tổng số từ vựng, số từ đã học, và số từ cần ôn tập trong ngày.
+- **Gợi ý hành động**: Hiển thị nút truy cập nhanh đến các từ cần ôn tập hoặc bài quiz đề xuất.
+- **Biểu đồ trực quan**: Thống kê tiến độ ôn tập trong ngày hiện tại.
 
-### 2.3 Flashcard (Thẻ Học)
+### 2.3 Quản Lý Từ Vựng (Vocabulary)
 
-- **Chế độ học**: Xem thẻ một chiều
-- **Xem thẻ**: Hiển thị từ, IPA, ví dụ
-- **Đánh dấu trạng thái**:
-  - Đã hiểu ✓ (nâng lên box cao hơn)
-  - Chưa hiểu ✗ (hạ xuống box 1)
-- **Spaced Repetition**: Lên lịch ôn tập dựa trên Leitner System
-  - Box 1 → 1 ngày
-  - Box 2 → 2 ngày
-  - Box 3 → 4 ngày
-  - Box 4 → 7 ngày
-  - Box 5 → 14 ngày
-- **Lọc**: Chỉ hiển thị từ cần ôn tập (nextReviewDate ≤ hôm nay)
+- **Thêm từ mới**: Nhập từ tiếng Anh, nghĩa tiếng Việt, ví dụ minh họa và chủ đề.
+- **Tự động điền phiên âm IPA**: Khi nhập từ tiếng Anh mới, hệ thống tự động gọi API từ điển công khai để điền sẵn phiên âm chuẩn IPA (có thể chỉnh sửa thủ công).
+- **Tìm kiếm & Lọc**:
+  - Tìm kiếm thời gian thực theo từ hoặc nghĩa, đồng bộ thanh tìm kiếm hai chiều giữa Header (`TopBar`) và trang Vocabulary.
+  - Lọc theo chủ đề (Gia đình, Thực phẩm, v.v.).
+  - Lọc theo trạng thái học (Đã học / Chưa học).
+  - Lọc theo hộp ghi nhớ Leitner (Hộp 1 đến Hộp 5).
+- **Chỉnh sửa & Xóa**: Cập nhật chi tiết hoặc xóa từ vựng khỏi tài khoản.
+- **Sắp xếp**: Sắp xếp danh sách từ theo ngày tạo, thứ tự bảng chữ cái, trạng thái học hoặc hộp Leitner.
 
-### 2.4 Quiz (Kiểm Tra)
+### 2.4 Flashcard (Thẻ Học 3D)
 
-- **Câu hỏi trắc nghiệm**: Chọn nghĩa đúng cho từ
-- **4 lựa chọn**: Đáp án đúng + 3 nhiễu
-- **Đánh giá**: Tính điểm, tỷ lệ chính xác
-- **Luyện tập có mục đích**:
-  - Luyện toàn bộ từ
-  - Luyện theo chủ đề
-  - Luyện từ chưa học
-  - Luyện từ cần ôn tập
-- **Thời gian**: Ghi nhận thời gian làm quiz
-- **Kết quả**: Hiển thị tổng điểm, phần trăm chính xác, từ còn yếu
+- **Giao diện 3D**: Trải nghiệm lật thẻ mượt mà để xem từ vựng (mặt trước) và nghĩa/ví dụ (mặt sau).
+- **Đánh giá ghi nhớ**:
+  - **Đã nhớ** ✓ (Hộp Leitner tăng lên 1 bậc, tối đa Hộp 5, tăng khoảng cách thời gian ôn tập).
+  - **Chưa nhớ** ✗ (Hộp Leitner hạ ngay về Hộp 1, lên lịch ôn tập lại vào ngày tiếp theo).
+- **Thuật toán Spaced Repetition (Hệ thống Leitner 5 Hộp)**:
+  - Hộp 1 → Ôn tập sau 1 ngày.
+  - Hộp 2 → Ôn tập sau 2 ngày.
+  - Hộp 3 → Ôn tập sau 4 ngày.
+  - Hộp 4 → Ôn tập sau 7 ngày.
+  - Hộp 5 → Ôn tập sau 14 ngày.
+- **Lọc thẻ cần ôn**: Chỉ tải các thẻ có lịch ôn tập đến hạn (`nextReviewDate` ≤ thời điểm hiện tại).
 
-### 2.5 Thống Kê (Stats)
+### 2.5 Quiz (Kiểm Tra)
 
-- **Biểu đồ tiến độ**:
-  - Tổng từ vựng theo thời gian
-  - Tỷ lệ từ đã học
-  - Phân bố từ theo hộp (Box distribution)
-  - Biểu đồ hiệu suất quiz (Accuracy trend)
+- **Tạo câu hỏi trắc nghiệm**: Chọn ngẫu nhiên từ vựng trong kho của người dùng (tất cả từ, theo chủ đề hoặc theo trạng thái ôn tập).
+- **4 lựa chọn**: Bao gồm 1 đáp án đúng và 3 đáp án nhiễu được lấy ngẫu nhiên từ nghĩa của các từ khác.
+- **Kết quả & Thống kê**:
+  - Tính điểm theo thang 100 và tỷ lệ chính xác.
+  - Ghi nhận thời gian làm bài (duration).
+  - Hiển thị kết quả chi tiết sau khi hoàn thành.
+  - Tự động lưu lịch sử làm quiz (`QuizAttempt`) lên database.
+
+### 2.6 Thống Kê (Stats)
+
+- **Biểu đồ trực quan**:
+  - Tổng số từ vựng tích lũy theo thời gian.
+  - Tỷ lệ từ đã học thành công.
+  - Biểu đồ hình cột phân bố số lượng từ trong các Hộp 1-5.
+  - Biểu đồ đường xu hướng độ chính xác qua các bài Quiz.
 - **Thống kê chi tiết**:
-  - Tổng quiz đã làm
-  - Tỷ lệ chính xác trung bình
-  - Thời gian học tổng cộng
-  - Chủ đề yêu thích
-  - Từ vựng yếu nhất (ít đúng trong quiz)
-  - Từ vựng mạnh nhất (hay đúng)
-- **Hôm nay**: Thống kê của ngày hiện tại
+  - Tổng số bài quiz đã hoàn thành, tỷ lệ chính xác trung bình và tổng thời gian làm quiz.
+  - Chủ đề học tập có số lượng từ nhiều nhất.
+  - Danh sách từ vựng yếu nhất (trả lời sai nhiều nhất trong các bài kiểm tra).
 
-### 2.6 Cài Đặt (Settings)
+### 2.7 Cài Đặt & Quản Lý Dữ Liệu (Settings)
 
-- **Giao diện**:
-  - Chế độ tối (Dark mode) / Sáng (Light mode)
-  - Kích thước font
-  - Chủ đề màu (nếu có)
-- **Học tập**:
-  - Số câu hỏi mỗi quiz (mặc định 10)
-  - Chế độ random (xáo trộn câu hỏi)
-  - Âm thanh phát âm (nếu có)
-- **Dữ liệu**:
-  - **Xuất dữ liệu** (Export): Tải file JSON chứa tất cả từ vựng, quiz attempts, settings
-  - **Nhập dữ liệu** (Import): Tải file JSON để khôi phục dữ liệu
-  - **Reset dữ liệu**: Xóa toàn bộ từ vựng, attempts, quay lại mặc định
+- **Giao diện & Cài đặt học tập**:
+  - Bật/tắt chế độ tối (Dark Mode) - được thiết lập mặc định lúc tải trang để bảo vệ mắt.
+  - Thay đổi số lượng câu hỏi mặc định cho mỗi bài Quiz.
+- **Quản lý dữ liệu đám mây qua API**:
+  - **Xuất dữ liệu** (Export): Tải xuống tệp JSON chứa toàn bộ từ vựng, kết quả quiz và cấu hình từ máy chủ MongoDB.
+  - **Nhập dữ liệu** (Import): Tải lên tệp JSON để đồng bộ và khôi phục dữ liệu học tập lên máy chủ (xóa dữ liệu cũ).
+  - **Reset dữ liệu**: Xóa sạch từ vựng, kết quả làm bài của tài khoản hiện tại về trạng thái mặc định ban đầu.
 
-### 2.7 Đăng nhập / Đăng ký (Authentication)
-
-- **Đăng ký tài khoản**: Người dùng tạo tài khoản bằng email, mật khẩu và tên hiển thị.
-- **Đăng nhập**: Người dùng đăng nhập bằng email và mật khẩu đã đăng ký.
-- **Quản lý phiên**: Khi đăng nhập thành công, người dùng được đưa vào app chính.
-- **Dữ liệu riêng tư**: Mỗi tài khoản có dữ liệu từ vựng, quiz attempts và cài đặt riêng biệt.
-- **Đăng xuất**: Cho phép người dùng đăng xuất và trở về màn hình đăng nhập.
+---
 
 ## 3. Yêu Cầu Chức Năng (Functional Requirements)
 
-### FR1: Quản Lý Từ Vựng
+### FR1: Quản Lý Tài Khoản (Auth)
+- [x] Đăng ký tài khoản bằng Email, mật khẩu và tên hiển thị.
+- [x] Đăng nhập bằng Email, duy trì phiên đăng nhập thông qua lưu trữ Token JWT.
+- [x] Đăng xuất và điều hướng người dùng về trang đăng nhập.
+- [x] Bảo mật dữ liệu biệt lập giữa các tài khoản người dùng khác nhau.
 
-- [ ] Thêm từ mới với đầy đủ thông tin (word, IPA, meaning, example, topic)
-- [ ] Chỉnh sửa thông tin từ
-- [ ] Xóa từ
-- [ ] Danh sách tất cả từ với pagination hoặc infinite scroll
-- [ ] Tìm kiếm theo từ hoặc nghĩa (case-insensitive)
-- [ ] Lọc theo chủ đề, trạng thái học, box
-- [ ] Sắp xếp theo ngày tạo, tên từ, trạng thái
+### FR2: Quản Lý Từ Vựng
+- [x] Thêm từ mới thủ công với các thuộc tính cơ bản.
+- [x] Tự động truy vấn và điền phiên âm IPA thông qua API từ điển khi nhập xong từ.
+- [x] Sửa, xóa và xem danh sách từ vựng dạng bảng (Desktop) hoặc dạng thẻ (Mobile).
+- [x] Tìm kiếm nhanh (đồng bộ 2 chiều ở thanh Header) và lọc theo chủ đề, hộp Leitner, trạng thái học.
 
-### FR2: Flashcard Learning
+### FR3: Flashcard
+- [x] Render thẻ flashcard dạng 3D với hiệu ứng lật mặt khi chạm.
+- [x] Nút "Đã nhớ" / "Chưa nhớ" cập nhật chính xác cấp độ Hộp và lịch ôn tập tiếp theo (`nextReviewDate`) trên cơ sở dữ liệu MongoDB.
+- [x] Hiển thị thanh tiến trình ôn tập của bộ thẻ hiện tại.
 
-- [ ] Hiển thị thẻ học (word + IPA + example)
-- [ ] Chuyển sang mặt sau (flip card) để xem nghĩa
-- [ ] Đánh dấu "Đã hiểu" / "Chưa hiểu"
-- [ ] Cập nhật Spaced Repetition box dựa trên kết quả
-- [ ] Lọc thẻ cần ôn tập dựa trên nextReviewDate
-- [ ] Đếm tiến độ (e.g., 5/25 flashcards)
+### FR4: Quiz
+- [x] Sinh câu hỏi trắc nghiệm tự động từ kho từ vựng.
+- [x] Ghi nhận câu trả lời, tính toán thời gian làm bài, tính điểm.
+- [x] Lưu lịch sử bài quiz (`QuizAttempt`) lên MongoDB khi hoàn thành.
 
-### FR3: Quiz
+### FR5: Thống Kê & Cài Đặt
+- [x] Vẽ các biểu đồ tiến độ học, phân bố hộp, và hiệu suất làm quiz bằng biểu đồ trực quan.
+- [x] Thay đổi chế độ sáng/tối (Dark Mode làm mặc định hệ thống).
+- [x] API xuất/nhập tệp JSON và xóa toàn bộ dữ liệu tài khoản trên cloud.
 
-- [ ] Tạo quiz từ danh sách từ
-- [ ] 4 lựa chọn trắc nghiệm
-- [ ] Xáo trộn lựa chọn
-- [ ] Ghi nhận câu trả lời, tính điểm
-- [ ] Hiển thị kết quả sau mỗi câu hoặc sau cả quiz
-- [ ] Lưu kết quả attempt (correct, total, duration, topic)
-
-### FR4: Thống Kê
-
-- [ ] Tính tổng từ vựng
-- [ ] Tính tỷ lệ từ đã học
-- [ ] Phân bố từ theo box
-- [ ] Tính trung bình chính xác quiz
-- [ ] Biểu đồ tiến độ theo thời gian
-- [ ] Xác định từ vựng yếu nhất
-
-### FR5: Cài Đặt
-
-- [ ] Bật/tắt chế độ tối (dark mode)
-- [ ] Lưu cài đặt vào Local Storage
-- [ ] Xuất dữ liệu toàn bộ (Export JSON)
-- [ ] Nhập dữ liệu từ file JSON
-- [ ] Reset dữ liệu về mặc định
-
-### FR6: Authentication
-
-- [ ] Đăng ký tài khoản bằng email, mật khẩu và tên hiển thị
-- [ ] Đăng nhập bằng email và mật khẩu đã đăng ký
-- [ ] Mỗi người dùng có dữ liệu từ vựng riêng và cài đặt riêng
-- [ ] Đăng xuất trở về màn hình đăng nhập
+---
 
 ## 4. Yêu Cầu Phi Chức Năng (Non-Functional Requirements)
 
-### NFR1: Hiệu Năng
+### NFR1: Hiệu Năng & Đồng Bộ
+- [x] Thời gian phản hồi của API backend < 300ms (ngoại trừ lượt gọi lạnh đầu tiên khi server Render khởi động lại).
+- [x] Trạng thái giao diện thay đổi tức thì (Optimistic UI updates) khi thêm/sửa/xóa từ vựng để tránh cảm giác trễ mạng.
+- [x] Quản lý tải trang mượt mà, sử dụng các hiệu ứng loading/skeleton khi đợi phản hồi từ database.
 
-- [ ] Trang tải < 2s
-- [ ] Tìm kiếm / Lọc phản hồi < 200ms
-- [ ] Quiz chuyển câu hỏi < 100ms
-- [ ] Không lag khi cuộn danh sách 100+ từ
+### NFR2: Bảo Mật Dữ Liệu
+- [x] Mật khẩu người dùng được băm bằng thuật toán một chiều `bcryptjs`.
+- [x] Tất cả các kết nối trao đổi dữ liệu giữa Frontend và Backend phải thông qua giao thức bảo mật HTTPS (trên môi trường production).
+- [x] Các route API lấy và thay đổi dữ liệu từ vựng/quiz đều được bảo vệ bằng middleware JWT.
 
-### NFR2: Tương Thích
+### NFR3: Triển Khai & Cấu Hình
+- [x] Client (Vite + React) được triển khai lên **Vercel** với cấu hình ghi đè định tuyến (`vercel.json`) nhằm tránh lỗi 404 khi người dùng tải lại trang ở các URL con.
+- [x] Server (Express.js) được triển khai lên **Render** kết nối trực tiếp với Cluster đám mây của **MongoDB Atlas**.
+- [x] Thiết lập CORS chỉ chấp nhận kết nối từ tên miền của Frontend (được cấu hình động hỗ trợ các subdomain dạng `*.vercel.app`).
 
-- [ ] Chrome/Edge/Firefox mới nhất
-- [ ] Safari (iOS) 14+
-- [ ] Responsive: Mobile (320px), Tablet (768px), Desktop (1200px+)
-- [ ] Dark mode hỗ trợ trên tất cả browser
+---
 
-### NFR3: Lưu Trữ
+## 5. Cấu Trúc Dữ Liệu (MongoDB Schemas)
 
-- [ ] Dữ liệu lưu Local Storage (5-10MB đủ cho ~1000 từ)
-- [ ] Tuỳ chọn: Server-side sync (trong tương lai)
-
-### NFR4: Bảo Mật
-
-- [ ] Không gửi dữ liệu cá nhân lên server (Local-first)
-- [ ] Gemini API key chỉ dùng cho tính năng tương lai (AI suggestions)
-
-### NFR5: UX
-
-- [ ] Giao diện trực quan, không quá phức tạp
-- [ ] Hỗ trợ keyboard shortcuts (nếu có)
-- [ ] Toast notifications cho hành động (add, delete, etc.)
-- [ ] Loading states rõ ràng
-
-## 5. Dữ Liệu
+### User (Người Dùng)
+```typescript
+{
+  id: ObjectId;
+  email: string; // Unique, required
+  passwordHash: string; // Băm bằng bcryptjs
+  displayName: string;
+  settings: {
+    darkMode: boolean; // Mặc định true
+    theme: 'dark' | 'light' | 'normal';
+    defaultQuizSize: number; // Mặc định 10
+    dailyGoal: number; // Mặc định 5
+  };
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
 
 ### Word (Từ Vựng)
-
 ```typescript
 {
-  id: string; // Unique ID (word_timestamp)
-  word: string; // Từ tiếng Anh (e.g., "Mother")
-  ipa: string; // Phát âm IPA (e.g., "/ˈmʌðər/")
-  meaning: string; // Nghĩa tiếng Việt
-  example: string; // Câu ví dụ
-  topic: string; // Chủ đề (e.g., "Gia đình")
-  learned: boolean; // Đã học hay chưa
-  box: 1 - 5; // Hộp Leitner (1-5)
-  nextReviewDate: ISO8601; // Ngày ôn tập tiếp theo
-  createdAt: ISO8601; // Ngày tạo
+  id: ObjectId;
+  userId: ObjectId; // Liên kết tới bảng User
+  word: string;
+  ipa: string;
+  meaning: string;
+  example: string;
+  topic: string;
+  learned: boolean;
+  box: number; // Giá trị từ 1 - 5
+  nextReviewDate: Date; // Lịch ôn tập Spaced Repetition
+  createdAt: Date;
+  updatedAt: Date;
 }
 ```
 
-### QuizAttempt (Nỗ Lực Quiz)
-
+### QuizAttempt (Kết Quả Làm Bài)
 ```typescript
 {
-  id: string; // Unique ID
-  correct: number; // Số câu trả lời đúng
-  total: number; // Tổng số câu
-  duration: number; // Thời gian (ms)
-  topic: string; // Chủ đề (hoặc "All")
-  timestamp: ISO8601; // Khi nào làm quiz
+  id: ObjectId;
+  userId: ObjectId; // Liên kết tới bảng User
+  score: number; // Điểm số (0 - 100)
+  totalQuestions: number;
+  correctAnswers: number;
+  wrongAnswers: number;
+  duration: number; // Tính bằng giây
+  topic: string;
+  date: Date;
 }
 ```
 
-### AppSettings (Cài Đặt Ứng Dụng)
-
-```typescript
-{
-  darkMode: boolean; // Chế độ tối
-  quizCount: number; // Số câu quiz (mặc định 10)
-  shuffleQuestions: boolean; // Xáo trộn câu hỏi
-  fontSize: "small" | "medium" | "large"; // Kích thước font
-}
-```
+---
 
 ## 6. Hạn Chế Hiện Tại
 
-- Không hỗ trợ phát âm âm thanh (tính năng tương lai)
-- Không hỗ trợ hình ảnh cho từ vựng
-- Không có tính năng collaboration (chia sẻ từ vựng)
-- Local Storage chỉ: chỉ lưu trên thiết bị hiện tại
+- **Độ trễ khởi động của Server Free**: Do máy chủ Render (gói Free) tự động ngủ sau 15 phút không hoạt động, lượt gọi API đầu tiên sau thời gian này sẽ mất từ 50-60 giây để khởi động lại máy chủ (Cold Start).
+- **Chưa có âm thanh phát âm trực tiếp**: Hệ thống chưa tích hợp tính năng Text-to-Speech phát âm từ vựng.
+- **Chưa hoạt động ngoại tuyến (Offline mode)**: Do đã chuyển dịch hoàn toàn sang kiến trúc Client-Server, ứng dụng yêu cầu kết nối Internet liên tục để tải và cập nhật dữ liệu.
+
+---
 
 ## 7. Tiềm Năng Mở Rộng (Future)
 
-- AI suggestions: Dùng Gemini API để tạo ví dụ từ, câu hỏi tự động
-- Audio pronunciation: Phát âm từ bằng text-to-speech
-- Spaced Repetition tối ưu: Machine learning dự đoán thời gian ôn tập
-- Cloud sync: Đồng bộ dữ liệu qua tài khoản
-- Social: Chia sẻ từ vựng, quiz với bạn
-- Themes: Thêm nhiều chủ đề (HSK, TOEIC, IELTS, v.v.)
+- **Hỗ trợ Offline-first**: Lưu trữ tạm dữ liệu học tập vào IndexedDB khi mất kết nối mạng và tự động đồng bộ lên MongoDB khi có Internet trở lại.
+- **Phát âm từ vựng (Audio Pronunciation)**: Tích hợp thư viện hoặc API phát âm giọng đọc bản xứ.
+- **Tạo gợi ý học tập bằng AI**: Sử dụng mô hình ngôn ngữ (như Gemini API) để tạo câu ví dụ tự động phù hợp với ngữ cảnh học tập của người dùng.
+- **Học tập nhóm (Social Sharing)**: Cho phép người dùng chia sẻ bộ từ vựng hoặc thi đua bảng điểm quiz với nhau.

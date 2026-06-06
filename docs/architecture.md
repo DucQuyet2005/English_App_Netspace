@@ -1,525 +1,222 @@
 # Architecture - Xây như thế nào?
 
-Kiến trúc của LingoFlow dựa trên **React + TypeScript** với **Local Storage** làm backend, tối ưu cho hiệu suất và độ đơn giản.
+Kiến trúc của LingoFlow được thiết kế theo mô hình **MERN Stack** (MongoDB, Express, React, Node.js) hoàn chỉnh, chạy trên nền tảng đám mây thay thế cho việc chỉ lưu trữ Local Storage cục bộ như trước đây. Hệ thống phân chia rõ ràng giữa Client (Frontend) và Server (Backend), giao tiếp với nhau qua chuẩn RESTful API có bảo mật.
 
-## 1. Stack Công Nghệ
+---
 
-### Frontend
+## 1. Stack Công Nghệ (Tech Stack)
 
-- **React 19**: UI framework, hooks cho state management
-- **TypeScript 5.8**: Type safety, better IDE support
-- **Vite 6.2**: Build tool, fast HMR
-- **Tailwind CSS 4.1**: Utility-first CSS framework
-- **Lucide React 0.546**: Icon library
+### Frontend (Client-side)
+* **React 19**: Thư viện UI xây dựng các thành phần giao diện, sử dụng Hooks mới nhất.
+* **TypeScript 5.8**: Đảm bảo an toàn kiểu dữ liệu (Type safety) và tối ưu hóa hỗ trợ của IDE.
+* **Vite 6.2**: Công cụ đóng gói (Build tool) với cơ chế HMR (Hot Module Replacement) siêu tốc.
+* **Tailwind CSS 4.1**: Framework CSS tiện ích thiết kế giao diện Glassmorphism hiện đại.
+* **Motion (motion/react)**: Thư viện tạo các chuyển động và hiệu ứng lật thẻ 3D mượt mà.
+* **Lucide React**: Bộ thư viện icons chất lượng cao.
 
-### Styling & UI
+### Backend (Server-side)
+* **Node.js**: Môi trường chạy JavaScript phía máy chủ.
+* **Express.js**: Web framework tối giản dùng để xây dựng các API Endpoints và điều hướng (Routing).
+* **TypeScript**: Được cấu hình đồng bộ ở cả client và server để thống nhất các kiểu dữ liệu (Interfaces).
+* **JSON Web Token (JWT)**: Cơ chế tạo mã token bảo mật phục vụ xác thực người dùng.
+* **Bcryptjs**: Thư viện mã hóa và so sánh mật khẩu bằng thuật toán băm (hashing).
 
-- **@tailwindcss/vite**: Tailwind CSS plugin cho Vite
-- **Tailwind CSS**: Responsive design, dark mode support
-- **Lucide React**: Icons (Menu, Search, Settings, etc.)
-- **Motion 12.23**: Smooth animations (nếu cần)
+### Database (Cơ sở dữ liệu)
+* **MongoDB Atlas**: Hệ quản trị cơ sở dữ liệu NoSQL dạng tài liệu (Document) được lưu trữ trên Cloud.
+* **Mongoose**: Thư viện ODM (Object Data Modeling) hỗ trợ định nghĩa Schemas, xác thực dữ liệu và thực hiện các truy vấn dữ liệu từ Node.js đến MongoDB.
 
-### State Management
+---
 
-- **React Context API**: Centralized state (AppContext)
-- **useState**: Local component state
-- **useEffect**: Side effects (load, save data)
-
-### Storage
-
-- **Local Storage API**: Persist dữ liệu trên client
-- **JSON serialization**: Convert data ↔ string
-
-### Build & DevOps
-
-- **Express.js**: Backend server (minimal, future-proofing)
-- **Vite Preview**: Local server
-- **dotenv**: Environment variables (.env.local)
-
-### API
-
-- **Google Gemini API**: (in dependencies, for future features)
-
-## 2. Cấu Trúc Dự Án
+## 2. Cấu Trúc Dự Án (Directory Structure)
 
 ```
 English_App_Netspace/
-├── src/
-│   ├── App.tsx                 # Root component
-│   ├── AppContext.tsx          # Global state (words, attempts, settings)
-│   ├── main.tsx                # Entry point
-│   ├── index.css               # Global styles
-│   ├── types.ts                # TypeScript interfaces
-│   ├── components/
-│   │   ├── Sidebar.tsx         # Left navigation (Desktop)
-│   │   ├── TopBar.tsx          # Header with search
-│   │   ├── MobileNav.tsx       # Bottom navigation (Mobile)
-│   ├── pages/
-│   │   ├── Dashboard.tsx       # Home page
-│   │   ├── Vocabulary.tsx      # Word management
-│   │   ├── FlashcardsPage.tsx  # Flashcard learning
-│   │   ├── QuizPage.tsx        # Quiz mode
-│   │   ├── StatsPage.tsx       # Statistics
-│   │   ├── SettingsPage.tsx    # Settings & data management
-│   └── services/
-│       └── storageService.ts   # LocalStorage operations
-├── docs/
-│   ├── spec.md                 # Feature specification
-│   ├── architecture.md         # This file
-│   ├── changelog.md            # Change history
-├── vite.config.ts              # Vite config
-├── tsconfig.json               # TypeScript config
-├── tailwind.config.js          # Tailwind CSS config
-├── package.json                # Dependencies
-└── index.html                  # HTML entry
+├── backend/                     # Mã nguồn máy chủ (Backend)
+│   ├── src/
+│   │   ├── config/              # Cấu hình kết nối DB (db.ts)
+│   │   ├── middleware/          # Middleware bảo mật & Auth (auth.ts)
+│   │   ├── models/              # Mongoose models (User, Word, QuizAttempt)
+│   │   ├── routes/              # Các đầu API (auth.ts, words.ts, quiz.ts, data.ts)
+│   │   └── index.ts             # Khởi chạy Express app, cấu hình CORS & Port
+│   ├── package.json             # Khai báo dependencies của server
+│   └── tsconfig.json            # Cấu hình TypeScript cho backend
+├── frontend/                    # Mã nguồn giao diện (Frontend)
+│   ├── src/
+│   │   ├── components/          # Giao diện dùng chung (Sidebar, TopBar, MobileNav)
+│   │   ├── pages/               # Trang chính (Dashboard, Vocabulary, Flashcards, Quiz, Stats, Settings)
+│   │   ├── services/            # Lớp API (apiService.ts) kết nối Express
+│   │   ├── App.tsx              # Component gốc và phân luồng định tuyến (React Router)
+│   │   ├── AppContext.tsx       # Quản lý Global State (Từ vựng, Auth, Settings)
+│   │   ├── types.ts             # Interfaces TypeScript chung
+│   │   └── index.css            # CSS cấu hình Dark/Light theme & Glassmorphism
+│   ├── vercel.json              # Cấu hình rewrite URL cho Single Page App trên Vercel
+│   └── package.json             # Khai báo dependencies của client
+└── docs/                        # Tài liệu dự án (spec, architecture, changelog, plans)
 ```
 
-## 3. State Management (AppContext)
+---
 
-### Context Structure
+## 3. Quản Lý Trạng Thái & Dữ Liệu (State & Data Management)
 
+### Luồng Truyền Dữ Liệu (Data Flow)
+Dữ liệu của người dùng được đồng bộ thời gian thực thông qua mô hình dưới đây:
+
+```
+[React UI Page] 
+      ↓ (Gọi Action)
+[AppContext.tsx] 
+      ↓ (Yêu cầu API)
+[apiService.ts] ──(Gửi JWT Token trong Header)──> [Express API Server]
+                                                           ↓
+                                                    [Mongoose Model]
+                                                           ↓
+                                                    [MongoDB Atlas]
+```
+
+### Cơ chế Quản lý State cục bộ (`AppContext.tsx`)
+* **`words`**: Mảng chứa danh sách từ vựng hiện tại của người dùng đăng nhập.
+* **`attempts`**: Mảng chứa lịch sử các bài kiểm tra (quiz) đã hoàn thành.
+* **`settings`**: Lưu thông tin Dark Mode và các cài đặt hiển thị/quiz.
+* **`currentUser`** và **`isAuthenticated`**: Trạng thái phiên đăng nhập của người dùng.
+* **Optimistic UI Updates (Cập nhật giao diện lạc quan)**: Khi người dùng thao tác Thêm/Sửa/Xóa từ vựng, Frontend sẽ lập tức cập nhật state local để hiển thị UI mượt mà, đồng thời gửi API chạy ngầm lên server. Nếu server trả về lỗi, Frontend sẽ tự động roll-back về dữ liệu cũ.
+
+### Lớp Kết Nối API (`apiService.ts`)
+Định nghĩa hàm bao bọc `apiFetch` để tự động đính kèm mã bảo mật JWT vào header của mỗi HTTP request:
 ```typescript
-interface AppContextType {
-  // State
-  words: Word[];
-  attempts: QuizAttempt[];
-  settings: AppSettings;
-  activeTab: TabType;
-  currentUser: User | null;
-  isAuthenticated: boolean;
-
-  // Actions
-  setActiveTab(tab: TabType): void;
-  login(email: string, password: string): { success: boolean; message: string };
-  register(
-    email: string,
-    password: string,
-    displayName: string,
-  ): { success: boolean; message: string };
-  logout(): void;
-  addWord(wordData): void;
-  updateWord(word: Word): void;
-  deleteWord(id: string): void;
-  addAttempt(correct, total, duration, topic): void;
-  updateSettings(settings): void;
-  toggleWordLearned(id: string): void;
-  resetData(): void;
-  exportData(): void;
-  importData(jsonData: string): void;
+const token = localStorage.getItem('lingoflow_token');
+if (token) {
+  headers['Authorization'] = `Bearer ${token}`;
 }
 ```
 
-### Data Flow
+---
+
+## 4. Cơ Chế Xác Thực & Phân Quyền (Authentication Flow)
 
 ```
-App (Root)
-  ↓
-AppProvider (Context)
-  ↓
-AppContent (Consumer)
-  ├── Sidebar
-  ├── TopBar
-  ├── Pages (Dashboard, Vocabulary, FlashcardsPage, etc.)
-  └── MobileNav
+[Đăng ký / Đăng nhập] ──> [Băm mật khẩu bằng bcryptjs] ──> [Lưu DB / Kiểm tra DB]
+                                                                  ↓
+[Lưu trữ Token cục bộ] <── [Gửi Token JWT về Client] <── [Tạo Token JWT (Ký mã)]
 ```
 
-### Persistence
+### Chi tiết các bước:
+1. **Xác thực phiên**: Khi đăng nhập hoặc đăng ký thành công, server trả về mã token JWT. Token được lưu trữ ở Local Storage dưới key `lingoflow_token`.
+2. **Kiểm tra phiên đăng nhập tự động**: Khi ứng dụng khởi tạo (F5 tải lại trang), client gọi API `/api/auth/me`. 
+   * Nếu Token hợp lệ, server trả về thông tin cá nhân và cài đặt của User, ứng dụng chuyển sang trạng thái `isAuthenticated = true` và tải dữ liệu học tập.
+   * Nếu Token hết hạn hoặc không hợp lệ, client xóa token và chuyển hướng về màn hình đăng nhập.
+3. **Bảo vệ Endpoint (Protected Routes)**: File `backend/src/middleware/auth.ts` cung cấp `authMiddleware` để chặn các request trái phép. Chỉ những request có token hợp lệ mới lấy được dữ liệu ứng với `userId` được giải mã từ token.
 
-```
-Component → Action → AppContext → setWords/setAttempts/setSettings
-  ↓                                      ↓
-Update UI                         saveWords/saveAttempts/saveSettings
-                                              ↓
-                                      Local Storage
-```
+---
 
-### Authentication Flow
+## 5. Cấu Trúc Dữ Liệu & Models (MongoDB / Mongoose)
 
-- **Email/password auth** được xử lý cục bộ bằng `LocalStorage`.
-- `AppContext` lưu `currentUser` và trạng thái `isAuthenticated`.
-- Mỗi user có namespace dữ liệu riêng: `lingoflow_words_<userId>`, `lingoflow_attempts_<userId>`, `lingoflow_settings_<userId>`.
-- Khi đăng nhập hoặc đăng ký, app tải dữ liệu từ LocalStorage cho user đó và áp dụng `darkMode` ngay.
-- Đăng xuất sẽ xóa phiên hiện tại và đưa người dùng về màn hình login.
+Dự án có 3 Model chính tương tác với MongoDB Atlas:
 
-## 4. Component Architecture
-
-### Page Components
-
-#### Dashboard (`Dashboard.tsx`)
-
-- **Tujuan**: Overview, quick stats
-- **Props**: None (reads from context)
-- **Renders**:
-  - Total words, learned words count
-  - Words due for review
-  - Recent quiz attempts
-  - Quick actions (Add word, Take quiz, etc.)
-
-#### Vocabulary (`Vocabulary.tsx`)
-
-- **Tujuan**: Manage words
-- **Props**: None
-- **State**:
-  - `searchTerm`: Filter by word/meaning
-  - `selectedTopic`: Filter by topic
-  - `learnedFilter`: Show all/learned/not-learned
-  - `sortBy`: Sort by date, name, status
-- **Features**:
-  - Add word form
-  - Word list (table or cards)
-  - Edit/delete modals
-  - Search & filter
-  - Responsive (table on desktop, cards on mobile)
-
-#### FlashcardsPage (`FlashcardsPage.tsx`)
-
-- **Tujuan**: Learn with spaced repetition
-- **State**:
-  - `currentIndex`: Current flashcard
-  - `isFlipped`: Show front or back
-  - `dueCards`: Cards to review today
-- **Features**:
-  - Flip animation
-  - Mark as "Learned" / "Not learned"
-  - Progress indicator
-  - Auto-advance to next card
-
-#### QuizPage (`QuizPage.tsx`)
-
-- **Tujuan**: Practice with MCQ
-- **State**:
-  - `currentQuestion`: Index of current question
-  - `selectedAnswers`: User's choices
-  - `quizSession`: Current quiz data
-- **Features**:
-  - Generate MCQ from words
-  - Show 4 options (1 correct + 3 distractors)
-  - Shuffle options
-  - Instant feedback (correct/incorrect)
-  - Final score and summary
-  - Save attempt to attempts[]
-
-#### StatsPage (`StatsPage.tsx`)
-
-- **Tujuan**: Visualize learning progress
-- **Renders**:
-  - Total words count (pie chart)
-  - Learned vs. to-learn ratio
-  - Words by box distribution
-  - Quiz accuracy trend (line chart)
-  - Best/worst topics
-  - Worst words (low accuracy)
-
-#### SettingsPage (`SettingsPage.tsx`)
-
-- **Tujuan**: Configure app & manage data
-- **Features**:
-  - Dark mode toggle
-  - Font size selector
-  - Quiz count setting
-  - Export data (download JSON)
-  - Import data (upload JSON)
-  - Reset data confirmation dialog
-
-### UI Components
-
-#### Sidebar (`Sidebar.tsx`)
-
-- **Desktop only** (hidden on mobile via responsive classes)
-- Navigation links (Dashboard, Vocabulary, Flashcards, etc.)
-- Active indicator
-- Fixed width (288px = `md:w-72`)
-
-#### TopBar (`TopBar.tsx`)
-
-- **Header**
-- Logo/Title
-- Search input (passes to Vocabulary page)
-- User menu (Settings, Dark mode toggle)
-- Responsive: hamburger on mobile
-
-#### MobileNav (`MobileNav.tsx`)
-
-- **Mobile only** (hidden on desktop)
-- Bottom navigation (fixed)
-- Icons + labels for main pages
-- Active indicator
-- Tab-based navigation
-
-## 5. Storage Service
-
-### API
-
+### 5.1 User Model (`User.ts`)
+Quản lý thông tin tài khoản và cấu hình của người dùng.
 ```typescript
-// Read operations
-getWords(): Word[]
-getAttempts(): QuizAttempt[]
-getSettings(): AppSettings
-
-// Write operations
-saveWords(words: Word[]): void
-saveAttempts(attempts: QuizAttempt[]): void
-saveSettings(settings: AppSettings): void
-
-// Data management
-clearLocalStorage(): void
-exportData(): JSON
-
-// Constants
-INITIAL_WORDS: Word[]
-INITIAL_ATTEMPTS: QuizAttempt[]
-DEFAULT_SETTINGS: AppSettings
+const UserSchema = new Schema({
+  email: { type: String, required: true, unique: true, trim: true },
+  passwordHash: { type: String, required: true },
+  displayName: { type: String, required: true },
+  settings: {
+    darkMode: { type: Boolean, default: true },
+    theme: { type: String, default: 'dark' },
+    defaultQuizSize: { type: Number, default: 10 },
+    dailyGoal: { type: Number, default: 5 }
+  }
+}, { timestamps: true });
 ```
 
-### Implementation Details
-
-- Uses `localStorage.getItem()` / `localStorage.setItem()`
-- Keys: `lingoflow_words`, `lingoflow_attempts`, `lingoflow_settings`
-- Fallback to initial data if not found
-- JSON serialization/deserialization
-
-## 6. Responsive Design
-
-### Breakpoints (Tailwind)
-
-- **Mobile**: < 768px (`sm:`)
-- **Tablet**: 768px - 1024px (`md:`)
-- **Desktop**: > 1024px (default)
-
-### Layout
-
-```
-DESKTOP:
-┌─────────────────────────────────┐
-│          TopBar                 │
-├──────────────┬──────────────────┤
-│   Sidebar    │                  │
-│   (288px)    │     Main Page    │
-│              │                  │
-└──────────────┴──────────────────┘
-
-MOBILE:
-┌──────────────────────────┐
-│      TopBar              │
-├──────────────────────────┤
-│                          │
-│       Main Page          │
-│                          │
-│     (scrollable)         │
-├──────────────────────────┤
-│     MobileNav (fixed)    │
-└──────────────────────────┘
-```
-
-### Responsive Classes
-
-- Sidebar: `md:pl-72` (Desktop only)
-- MobileNav: `pb-24 md:pb-0` (Fixed height on mobile)
-- Grid layouts: `grid-cols-1 md:grid-cols-2 lg:grid-cols-3`
-- Typography: `text-sm md:text-base lg:text-lg`
-
-## 7. Dark Mode
-
-### Implementation
-
-- Tailwind's `dark:` class strategy
-- Toggle via Settings page
-- Saved to `AppSettings.darkMode`
-- Applied to `<html>` element: `document.documentElement.classList.add('dark')`
-- CSS variables adapt automatically
-
-### Colors
-
-- Light: `bg-slate-50`, `text-slate-800`
-- Dark: `bg-slate-900`, `text-slate-100`
-
-## 8. Spaced Repetition Logic
-
-### Leitner System (5-Box Model)
-
-```
-Box 1 → Review in 1 day (new/failed words)
-Box 2 → Review in 2 days
-Box 3 → Review in 4 days
-Box 4 → Review in 7 days
-Box 5 → Review in 14 days (mastered)
-```
-
-### Algorithm
-
+### 5.2 Word Model (`Word.ts`)
+Lưu danh sách từ vựng riêng của từng người dùng và các thuộc tính phục vụ thuật toán Spaced Repetition.
 ```typescript
-if (word.learned) {
-  // Move up: box++ (max 5), increase review interval
-  nextBox = Math.min(5, word.box + 1);
-  nextReviewDays = Math.pow(2, nextBox - 1);
-} else {
-  // Move down: box = 1, review immediately
-  nextBox = 1;
-  nextReviewDate = new Date(); // Today
-}
+const WordSchema = new Schema({
+  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  word: { type: String, required: true, trim: true },
+  ipa: { type: String, default: '' },
+  meaning: { type: String, required: true },
+  example: { type: String, default: '' },
+  topic: { type: String, default: 'Chung' },
+  learned: { type: Boolean, default: false },
+  box: { type: Number, min: 1, max: 5, default: 1 },
+  nextReviewDate: { type: Date, default: Date.now }
+}, { timestamps: true });
+
+// Thiết lập indexes để tăng tốc độ tìm kiếm & lọc dữ liệu
+WordSchema.index({ userId: 1, word: 1 });
+WordSchema.index({ userId: 1, nextReviewDate: 1 });
 ```
 
-### Filtering
-
-Only show flashcards where `nextReviewDate <= today()`
-
-## 9. Quiz Generation
-
-### Algorithm
-
-1. Select random words from target pool (all/topic/due)
-2. For each word:
-   - Correct answer = word.meaning
-   - 3 distractors = random meanings from other words
-   - Shuffle 4 options
-3. User selects answer
-4. Check correctness, calculate score
-5. Save attempt with (correct, total, duration, topic)
-6. NO word status update from quiz (only from flashcard learning)
-
-## 10. Type Definitions (`types.ts`)
-
+### 5.3 QuizAttempt Model (`QuizAttempt.ts`)
+Ghi nhận kết quả của mỗi bài quiz để tính toán các chỉ số biểu đồ trong trang Thống kê.
 ```typescript
-export interface Word {
-  id: string;
-  word: string;
-  ipa: string;
-  meaning: string;
-  example: string;
-  topic: string;
-  learned: boolean;
-  box: number; // 1-5
-  nextReviewDate: string; // ISO8601
-  createdAt: string; // ISO8601
-}
-
-export interface QuizAttempt {
-  id: string;
-  correct: number;
-  total: number;
-  duration: number;
-  topic: string;
-  timestamp: string; // ISO8601
-}
-
-export interface AppSettings {
-  darkMode: boolean;
-  quizCount: number;
-  shuffleQuestions: boolean;
-  fontSize: "small" | "medium" | "large";
-}
-
-export type TabType =
-  | "dashboard"
-  | "vocabulary"
-  | "flashcard"
-  | "quiz"
-  | "stats"
-  | "settings";
+const QuizAttemptSchema = new Schema({
+  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  score: { type: Number, required: true, min: 0, max: 100 },
+  totalQuestions: { type: Number, required: true },
+  correctAnswers: { type: Number, required: true },
+  wrongAnswers: { type: Number, required: true },
+  duration: { type: Number, required: true }, // giây
+  topic: { type: String, default: 'Hỗn hợp' },
+  date: { type: Date, default: Date.now }
+});
 ```
 
-## 11. Build & Deploy
+---
 
-### Development
+## 6. Thuật Toán Lặp Lại Cách Khoảng (Leitner 5-Box)
 
-```bash
-npm run dev      # Start Vite dev server (port 3000)
-npm run lint     # TypeScript type check
-```
+Luồng nghiệp vụ xử lý trạng thái học thẻ flashcard được kiểm soát tại API `/api/words/:id/learned` như sau:
 
-### Production
+* **Khi người học nhấn "Đã nhớ" (Chưa thuộc -> Đã thuộc hoặc Đã thuộc tiếp tục nâng box)**:
+  * Từ vựng được tăng thêm 1 Hộp (tối đa Hộp 5): `nextBox = Math.min(5, currentBox + 1)`.
+  * Khoảng cách ngày ôn tập được tính lũy thừa theo cấp số nhân: `nextReviewDays = 2^(nextBox - 1)` (1 ngày, 2 ngày, 4 ngày, 7 ngày, 14 ngày).
+  * Lên lịch ngày ôn tập tiếp theo: `nextReviewDate = Hôm nay + nextReviewDays`.
+* **Khi người học nhấn "Chưa nhớ"**:
+  * Từ vựng bị đẩy lập tức về Hộp 1: `nextBox = 1`.
+  * Đặt lịch ôn tập lại vào ngày hôm sau: `nextReviewDate = Ngày mai`.
 
-```bash
-npm run build    # Vite build (output: dist/)
-npm run preview  # Preview production build locally
-```
+---
 
-### Environment
+## 7. Quy Trình Sinh Đề Trắc Nghiệm (Quiz Generation)
 
-- `.env.local` for `GEMINI_API_KEY` (future use)
+Quá trình sinh câu hỏi diễn ra hoàn toàn ở phía client để đảm bảo tốc độ phản hồi < 100ms:
+1. **Lọc kho từ vựng**: Lọc danh sách từ dựa trên chủ đề hoặc trạng thái do người học chọn.
+2. **Xác định đáp án**: Với mỗi từ vựng được chọn làm câu hỏi, đáp án đúng là nghĩa (`meaning`) của từ đó.
+3. **Trộn đáp án nhiễu (Distractors)**: Hệ thống lấy ngẫu nhiên 3 nghĩa khác từ kho từ vựng hiện có để làm các đáp án sai.
+4. **Xáo trộn**: Dùng thuật toán Fisher-Yates để xáo trộn thứ tự các câu hỏi và thứ tự các đáp án hiển thị của mỗi câu để đảm bảo tính khách quan.
+5. **Ghi nhận lịch sử**: Kết thúc bài quiz, client gọi API `POST /api/quiz/attempts` để cập nhật lịch sử lên MongoDB.
 
-## 12. Performance Considerations
+---
 
-### Optimization
+## 8. Triển Khai Thực Tế (Deployment & Environment)
 
-- **Code Splitting**: Vite automatically splits chunks
-- **Lazy Loading**: Pages can be lazy-loaded
-- **Memoization**: `useMemo` for expensive calculations (if needed)
-- **Local Storage**: Fast access (no network latency)
-- **Debounce**: Search input debounced
-- **Responsive Images**: Use webp if needed
+Hệ thống được cấu hình tối ưu để chạy trên các môi trường đám mây miễn phí:
 
-### Metrics to Monitor
+### 8.1 Frontend (Vercel)
+* **Cấu hình định tuyến SPA**: Tệp `frontend/vercel.json` định cấu hình rewrite để chuyển hướng mọi URL con (ví dụ: `/vocabulary`, `/quiz`) về file chạy chính `index.html`. Việc này ngăn chặn lỗi 404 khi người dùng tải lại trang trực tiếp từ trình duyệt.
+* **Biến môi trường**: `VITE_API_URL` trỏ đến địa chỉ API của Backend (ví dụ: `https://lingoflow-backend.onrender.com/api`).
 
-- FCP (First Contentful Paint) < 1s
-- LCP (Largest Contentful Paint) < 2.5s
-- CLS (Cumulative Layout Shift) < 0.1
-- TTI (Time to Interactive) < 3.5s
-
-## 13. Future Architecture Plans
-
-### Backend Integration (v2.0)
-
-```
-Frontend (React) → API Gateway → Backend (Node.js + Database)
-                                    ├── Word Service
-                                    ├── Quiz Service
-                                    ├── Stats Service
-                                    └── Auth Service
-```
-
-### Database Schema
-
-```sql
-users:
-  id (PK), email, passwordHash, createdAt
-
-words:
-  id (PK), userId (FK), word, meaning, topic, learned, box, nextReviewDate, createdAt
-
-attempts:
-  id (PK), userId (FK), correct, total, duration, topic, timestamp
-
-settings:
-  userId (PK/FK), darkMode, quizCount, fontSize
-```
-
-### Real-time Sync
-
-- WebSocket for live updates
-- Conflict resolution strategy (last-write-wins)
-- Offline-first approach with eventual consistency
-
-## 14. Security Considerations
-
-### Current (Local-First)
-
-- No authentication needed
-- All data stored locally on client device
-- No data sent to server (except future Gemini API)
-
-### Future
-
-- User authentication (JWT)
-- HTTPS for all API calls
-- CORS policy enforcement
-- Rate limiting on Gemini API
-
-## 15. Accessibility
-
-### WCAG 2.1 Compliance
-
-- Semantic HTML (`<button>`, `<nav>`, `<main>`, etc.)
-- ARIA labels where needed (`aria-label`, `aria-expanded`)
-- Keyboard navigation (Tab, Enter, Escape)
-- Color contrast ratios ≥ 4.5:1
-- Focus indicators
-- Responsive text sizing
-
-### Keyboard Shortcuts (Future)
-
-- `Ctrl+K` / `Cmd+K`: Search
-- `Ctrl+N` / `Cmd+N`: New word
-- `Space`: Flip flashcard / Next question
-- `1-4`: Select quiz answer
-- `Esc`: Close modals
+### 8.2 Backend (Render)
+* **Root Directory**: `backend` (để Render tập trung chạy đúng mã nguồn Node.js).
+* **Build Command**: `npm install && npm run build` (Biên dịch tệp `.ts` sang thư mục chạy `dist/`).
+* **Start Command**: `node dist/index.js`.
+* **Cấu hình CORS**: Tệp `backend/src/index.ts` thiết lập CORS động:
+  ```typescript
+  const corsOptions = {
+    origin: (origin, callback) => {
+      // Cho phép truy cập từ localhost và tất cả các subdomain của vercel.app của dự án
+      if (!origin || /https?:\/\/localhost:\d+/.test(origin) || origin.endsWith('.vercel.app')) {
+        callback(null, true);
+      } else {
+        callback(new Error('Bị chặn bởi cấu hình bảo mật CORS'));
+      }
+    },
+    credentials: true
+  };
+  ```
+* **Biến môi trường chính**:
+  * `MONGODB_URI`: Đường dẫn kết nối MongoDB Atlas đã được mã hóa password.
+  * `JWT_SECRET`: Khóa bí mật dùng để tạo chữ ký cho token JWT.
+  * `FRONTEND_URL`: Địa chỉ trang web Frontend chính để bảo mật CORS.

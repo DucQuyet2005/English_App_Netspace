@@ -15,39 +15,40 @@ Tất cả các thay đổi đáng chú ý đối với project LingoFlow đư�
 
 ## [Unreleased] - Phiên bản đang phát triển
 
-### [ADDED]
-
-- Tích hợp Free Dictionary API tự động điền phiên âm IPA chuẩn khi người dùng thêm/sửa từ mới.
-- Đồng bộ hóa thanh tìm kiếm (Search Bar) hai chiều giữa Header (TopBar) và trang Quản lý từ vựng (Vocabulary).
-- Placeholder cho tính năng AI suggestions (Google Gemini API in dependencies)
-- Motion library cho smooth animations (placeholder)
-- Express.js dependency cho backend (future-proofing)
-- Thêm hệ thống đăng nhập/đăng ký cục bộ với LocalStorage cho dữ liệu người dùng riêng
-- Hệ thống Backend hoàn chỉnh sử dụng Node.js, Express.js và MongoDB Atlas (Mongoose)
-- Xác thực người dùng bảo mật với JSON Web Token (JWT) và mã hóa mật khẩu bằng bcryptjs
-- API service layer (`apiService.ts`) đồng bộ hóa dữ liệu từ Frontend lên Cloud MongoDB thay thế LocalStorage
-- Tính năng Import/Export dữ liệu học tập và Reset dữ liệu qua API
-- Hỗ trợ cấu hình proxy và tệp cấu hình vercel.json sẵn sàng để deploy thực tế lên Vercel + Render
-- Thiết kế lại toàn bộ giao diện theo phong cách Premium Glassmorphism sang trọng (Dashboard, Vocabulary, Flashcards, Quiz).
-- Cấu hình chế độ tối (Dark Mode) làm giao diện mặc định lúc tải trang ban đầu.
-- Cấu hình phân giải CORS tự động cho các subdomains của dự án trên Vercel tại Backend (`backend/src/index.ts`).
-
-### [FIXED]
-
-- Khắc phục lỗi đảo ngược bảng màu trong chế độ Dark theme, đảm bảo các lớp dark: hoạt động đúng chuẩn
-- Loại bỏ các quy tắc CSS ép buộc `!important` trong Light theme gây mờ chữ hoặc mất độ tương phản
-- Khắc phục lỗi chặn CORS trên môi trường deploy thực tế khi Frontend Vercel gọi API trên Render.
-
 ### [PLANNED]
 
 - Audio pronunciation support (text-to-speech)
 - AI-generated example sentences
-- Cloud sync (Firebase / Supabase)
-- User accounts & authentication
 - Collaborative vocabulary sharing
 - Advanced charts & analytics
 - Mobile app (React Native)
 - PWA support (offline mode)
+
+---
+
+## [v0.1.0] - 2026-06-05
+
+Bản cập nhật quan trọng tích hợp hệ thống Backend (Client-Server), xác thực người dùng bảo mật và nâng cấp giao diện người dùng.
+
+### [ADDED]
+
+- **Hệ thống Backend (Express & MongoDB)**:
+  - Khởi tạo Express server kết nối cơ sở dữ liệu MongoDB Atlas (Mongoose).
+  - Cập nhật `apiService.ts` để đồng bộ hóa dữ liệu từ Frontend lên Cloud DB (thay thế LocalStorage).
+  - Thêm API xuất/nhập (Import/Export) dữ liệu và reset tài khoản.
+- **Xác thực người dùng (Auth)**:
+  - Thêm chức năng Đăng ký / Đăng nhập, bảo mật API bằng JWT và mã hóa mật khẩu qua `bcryptjs`.
+- **UI/UX & Giao diện**:
+  - Thiết kế Premium Glassmorphism mượt mà với `motion/react`, font Serif cao cấp cho từ vựng.
+  - Tích hợp Free Dictionary API tự động điền phiên âm IPA khi tạo/sửa từ mới.
+  - Đồng bộ tìm kiếm hai chiều thời gian thực giữa TopBar và màn quản lý Vocabulary.
+  - Cấu hình chế độ tối (Dark Mode) làm mặc định và cải thiện Light Mode.
+
+### [FIXED]
+
+- Sửa lỗi hiển thị Dark Mode (đảo ngược màu) và tối ưu độ tương phản Light Mode.
+- Khắc phục lỗi chặn CORS (hỗ trợ dynamic subdomains trên Vercel) và lỗi gọi API khi deploy.
+- Sửa lỗi chạy local (nodemon, port) trên Windows.
 
 ---
 
