@@ -39,6 +39,13 @@ Tích hợp tính năng phát âm từ vựng (Text-to-Speech) và cập nhật 
   - Cập nhật toàn diện `spec.md` và `architecture.md` mô tả chuẩn xác cấu trúc MERN Stack, các MongoDB schemas thực tế, xác thực JWT cục bộ và quy trình triển khai đám mây.
   - Cập nhật hướng dẫn cài đặt và khởi chạy chi tiết cho cả Frontend và Backend trong `README.md`.
 
+### [FIXED]
+
+- **Sửa lỗi giao diện Responsive trên Di động**:
+  - Khắc phục lỗi Sidebar bị ẩn cứng trên di động bằng cách chuyển sang dạng trượt (Drawer sidebar) kèm lớp phủ mờ (Backdrop overlay) và nút đóng `X`.
+  - Liên kết sự kiện Hamburger Menu trên TopBar giúp mở Sidebar dễ dàng trên màn hình nhỏ.
+  - Sửa lỗi không hiển thị phần **Cài đặt** và thông tin tài khoản trên di động bằng cách tích hợp trực tiếp chúng vào Sidebar di động và tự động thu gọn sau khi chuyển tab.
+
 ---
 
 ## [v0.1.0] - 2026-06-05
