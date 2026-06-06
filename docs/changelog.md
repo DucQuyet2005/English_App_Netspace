@@ -17,12 +17,27 @@ Tất cả các thay đổi đáng chú ý đối với project LingoFlow đư�
 
 ### [PLANNED]
 
-- Audio pronunciation support (text-to-speech)
 - AI-generated example sentences
 - Collaborative vocabulary sharing
 - Advanced charts & analytics
 - Mobile app (React Native)
 - PWA support (offline mode)
+
+---
+
+## [v0.2.0] - 2026-06-06
+
+Tích hợp tính năng phát âm từ vựng (Text-to-Speech) và cập nhật hệ thống tài liệu đồng bộ kiến trúc MERN stack.
+
+### [ADDED]
+
+- **Tính năng Phát âm Từ vựng (Audio Pronunciation)**:
+  - Thêm tiện ích `audioHelper.ts` gọi API từ điển để phát âm thanh người thật (.mp3) hoặc tự động chuyển sang bộ đọc Web Speech API (TTS) làm dự phòng khi lỗi mạng hoặc không có file âm thanh.
+  - Tích hợp nút loa phát âm kèm loading spinner xoay tròn sinh động trên trang quản lý Từ vựng (`Vocabulary.tsx`) và thẻ học `FlashcardsPage.tsx`.
+  - Tạo tài liệu đặc tả thiết kế tại `docs/plans/textToSpeech.md`.
+- **Đồng bộ hóa tài liệu dự án (Docs)**:
+  - Cập nhật toàn diện `spec.md` và `architecture.md` mô tả chuẩn xác cấu trúc MERN Stack, các MongoDB schemas thực tế, xác thực JWT cục bộ và quy trình triển khai đám mây.
+  - Cập nhật hướng dẫn cài đặt và khởi chạy chi tiết cho cả Frontend và Backend trong `README.md`.
 
 ---
 

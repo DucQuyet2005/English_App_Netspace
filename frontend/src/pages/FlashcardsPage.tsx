@@ -10,8 +10,11 @@ import {
   CheckCircle,
   HelpCircle,
   RefreshCw,
-  Tag
+  Tag,
+  Volume2,
+  Loader2
 } from 'lucide-react';
+import { playPronunciation } from "../utils/audioHelper";
 
 export const FlashcardsPage: React.FC = () => {
   const { words, toggleWordLearned } = useApp();
@@ -19,6 +22,17 @@ export const FlashcardsPage: React.FC = () => {
   const [selectedTopic, setSelectedTopic] = useState('Tất cả');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
+
+  const [loadingAudio, setLoadingAudio] = useState(false);
+
+  const handlePlayAudio = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!activeCard || loadingAudio) return;
+    setLoadingAudio(true);
+    await playPronunciation(activeCard.word);
+    setLoadingAudio(false);
+  };
+
 
   // Thu thập danh sách chủ đề thực tế từ vựng
   const availableTopics = useMemo(() => {
@@ -35,7 +49,7 @@ export const FlashcardsPage: React.FC = () => {
     if (selectedTopic !== 'Tất cả') {
       filtered = words.filter(w => w.topic === selectedTopic);
     }
-    
+
     // Thuật toán Spaced Repetition: Sắp xếp theo box tăng dần (box 1 ôn đầu tiên), nếu box bằng nhau thì ưu tiên thời gian ôn tập cũ nhất
     return [...filtered].sort((a, b) => {
       if (a.box !== b.box) {
@@ -149,19 +163,43 @@ export const FlashcardsPage: React.FC = () => {
                 {/* Decorative gradients */}
                 <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-500 via-teal-400 to-indigo-500"></div>
                 <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 dark:bg-indigo-400/5 blur-2xl rounded-bl-full pointer-events-none"></div>
-                
+
                 <span className="text-indigo-600 dark:text-indigo-400 text-[11px] font-bold uppercase tracking-widest bg-indigo-50/80 dark:bg-indigo-500/10 px-4 py-2 rounded-xl border border-indigo-100/50 dark:border-indigo-500/20">
                   Từ vựng tiếng Anh
                 </span>
 
-                <div className="my-auto space-y-4 relative z-10 w-full">
+                {/* <div className="my-auto space-y-4 relative z-10 w-full">
                   <h2 className="text-5xl md:text-6xl font-serif-title text-slate-800 dark:text-slate-100 tracking-tight">
                     {activeCard.word}
                   </h2>
                   <p className="text-lg font-medium text-slate-500 dark:text-slate-400 font-serif italic">
                     {activeCard.ipa}
                   </p>
+                </div> */}
+
+                <div className="my-auto space-y-4 relative z-10 w-full">
+                  <div className="flex items-center justify-center gap-4">
+                    <h2 className="text-5xl md:text-6xl font-serif-title text-slate-800 dark:text-slate-100 tracking-tight">
+                      {activeCard.word}
+                    </h2>
+                    <button
+                      onClick={handlePlayAudio}
+                      disabled={loadingAudio}
+                      className="p-3 rounded-full bg-slate-100/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all cursor-pointer shadow-sm hover:shadow-md disabled:opacity-50"
+                      title="Nghe phát âm"
+                    >
+                      {loadingAudio ? (
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                      ) : (
+                        <Volume2 className="w-6 h-6" />
+                      )}
+                    </button>
+                  </div>
+                  <p className="text-lg font-medium text-slate-500 dark:text-slate-400 font-serif italic">
+                    {activeCard.ipa}
+                  </p>
                 </div>
+
 
                 <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500 text-xs font-bold bg-slate-50/50 dark:bg-slate-950/50 px-4 py-2 rounded-xl backdrop-blur-sm relative z-10 animate-bounce">
                   <RotateCw className="w-4 h-4" />
@@ -189,7 +227,7 @@ export const FlashcardsPage: React.FC = () => {
                   <h3 className="text-4xl font-serif-title text-slate-800 dark:text-slate-100">
                     {activeCard.meaning}
                   </h3>
-                  
+
                   <div className="bg-slate-50/80 dark:bg-slate-950/50 border border-slate-100 dark:border-slate-800/80 p-6 rounded-2xl w-full relative overflow-hidden backdrop-blur-sm">
                     <div className="absolute top-0 left-0 w-1 h-full bg-amber-400/50 dark:bg-amber-500/30"></div>
                     <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Ví dụ minh họa</p>

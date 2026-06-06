@@ -13,8 +13,12 @@ import {
   Trash2,
   X,
   Tag,
-  HelpCircle
+  HelpCircle,
+  Volume2,
+  Loader2
 } from 'lucide-react';
+
+import { playPronunciation } from '../utils/audioHelper';
 
 interface VocabularyProps {
   searchValue?: string;
@@ -41,6 +45,18 @@ export const Vocabulary: React.FC<VocabularyProps> = ({ searchValue = '', onSear
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingWord, setEditingWord] = useState<Word | null>(null);
 
+  // Audio state
+  const [loadingAudioId, setLoadingAudioId] = useState<string | null>(null);
+
+  const handlePlayAudio = async (word: string, id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (loadingAudioId === id) return;
+    setLoadingAudioId(id);
+    await playPronunciation(word);
+    setLoadingAudioId(null);
+  };
+
+
   // Form states
   const [wordInput, setWordInput] = useState('');
   const [ipaInput, setIpaInput] = useState('');
@@ -53,14 +69,14 @@ export const Vocabulary: React.FC<VocabularyProps> = ({ searchValue = '', onSear
   const fetchAutoIpa = async (word: string) => {
     const trimmedWord = word.trim();
     if (!trimmedWord) return;
-    
+
     try {
       const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(trimmedWord.toLowerCase())}`);
       if (!response.ok) return;
-      
+
       const data = await response.json();
       const phonetic = data[0]?.phonetic || data[0]?.phonetics?.find((p: any) => p.text)?.text;
-      
+
       if (phonetic) {
         setIpaInput(phonetic);
       }
@@ -81,13 +97,13 @@ export const Vocabulary: React.FC<VocabularyProps> = ({ searchValue = '', onSear
   const filteredWords = useMemo(() => {
     return words.filter(item => {
       const matchesSearch = item.word.toLowerCase().includes(search.toLowerCase()) ||
-                            item.meaning.toLowerCase().includes(search.toLowerCase());
-      
+        item.meaning.toLowerCase().includes(search.toLowerCase());
+
       const matchesTopic = topicFilter === 'Tất cả' || item.topic === topicFilter;
-      
-      const matchesStatus = statusFilter === 'Tất cả' || 
-                            (statusFilter === 'Đã thuộc' && item.learned) ||
-                            (statusFilter === 'Chưa thuộc' && !item.learned);
+
+      const matchesStatus = statusFilter === 'Tất cả' ||
+        (statusFilter === 'Đã thuộc' && item.learned) ||
+        (statusFilter === 'Chưa thuộc' && !item.learned);
 
       return matchesSearch && matchesTopic && matchesStatus;
     });
@@ -231,25 +247,47 @@ export const Vocabulary: React.FC<VocabularyProps> = ({ searchValue = '', onSear
               className="bg-white/60 dark:bg-slate-950/60 backdrop-blur-xl rounded-3xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-indigo-200/50 dark:hover:border-indigo-500/30 border border-white/60 dark:border-slate-800/60 flex items-start gap-5 group transition-all duration-300 relative overflow-hidden"
             >
               {/* Thư mục biểu trưng cho chủ đề */}
-              <div className={`shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center shadow-inner relative z-10 ${
-                item.learned 
-                  ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border border-emerald-100/50 dark:border-emerald-800/30' 
-                  : 'bg-indigo-50/80 dark:bg-slate-900/80 text-indigo-600 dark:text-indigo-400 border border-indigo-100/50 dark:border-indigo-800/20'
-              }`}>
+              <div className={`shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center shadow-inner relative z-10 ${item.learned
+                ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border border-emerald-100/50 dark:border-emerald-800/30'
+                : 'bg-indigo-50/80 dark:bg-slate-900/80 text-indigo-600 dark:text-indigo-400 border border-indigo-100/50 dark:border-indigo-800/20'
+                }`}>
                 <BookOpen className="w-7 h-7" />
               </div>
 
               {/* Thông tin Chi tiết từ */}
               <div className="flex-1 min-w-0 relative z-10">
                 <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
+                  {/* <div className="min-w-0">
                     <h3 className="text-2xl font-serif-title text-slate-800 dark:text-slate-100 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                       {item.word}
                     </h3>
                     <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">
                       {item.ipa}
                     </p>
+                  </div> */}
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-3">
+                      <h3 className="text-2xl font-serif-title text-slate-800 dark:text-slate-100 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                        {item.word}
+                      </h3>
+                      <button
+                        onClick={(e) => handlePlayAudio(item.word, item.id, e)}
+                        disabled={loadingAudioId === item.id}
+                        className="shrink-0 p-1.5 rounded-full bg-slate-100/80 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all cursor-pointer disabled:opacity-50"
+                        title="Nghe phát âm"
+                      >
+                        {loadingAudioId === item.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Volume2 className="w-4 h-4" />
+                        )}
+                      </button>
+                    </div>
+                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">
+                      {item.ipa}
+                    </p>
                   </div>
+
                   <span className="shrink-0 bg-amber-50/80 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200/50 dark:border-amber-800/30 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm">
                     {item.topic}
                   </span>
