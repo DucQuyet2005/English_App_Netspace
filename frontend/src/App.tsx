@@ -18,6 +18,7 @@ const AppContent: React.FC = () => {
   const { activeTab, setActiveTab, isAuthenticated, loading } = useApp();
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [globalSearch, setGlobalSearch] = useState('');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const renderActivePage = () => {
     switch (activeTab) {
@@ -63,13 +64,14 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 flex transition-colors duration-300">
-      <Sidebar />
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       <div className="flex-1 flex flex-col md:pl-72 pb-24 md:pb-0 min-h-screen relative">
         <TopBar
           searchValue={globalSearch}
           onSearchChange={(val) => {
             setGlobalSearch(val);
           }}
+          onMenuClick={() => setIsSidebarOpen(true)}
         />
         <main className="flex-1 pt-24 px-6 md:px-12 py-8 overflow-y-auto w-full transition-all">
           <div className="max-w-7xl mx-auto w-full">{renderActivePage()}</div>
