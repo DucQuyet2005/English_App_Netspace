@@ -5,7 +5,7 @@ export const translations = {
     sidebar: {
       dashboard: 'Bảng điều khiển',
       vocabulary: 'Từ vựng',
-      flashcards: 'Thẻ ghi nhớ',
+      flashcard: 'Thẻ ghi nhớ',
       quiz: 'Kiểm tra',
       stats: 'Thống kê',
       settings: 'Cài đặt',
@@ -60,7 +60,7 @@ export const translations = {
     sidebar: {
       dashboard: 'Dashboard',
       vocabulary: 'Vocabulary',
-      flashcards: 'Flashcards',
+      flashcard: 'Flashcards',
       quiz: 'Quiz',
       stats: 'Statistics',
       settings: 'Settings',

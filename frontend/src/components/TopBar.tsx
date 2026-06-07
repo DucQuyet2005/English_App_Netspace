@@ -22,9 +22,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   const learnedCount = words.filter(w => w.learned).length;
 
   const getTitle = () => {
-    // Chuẩn hóa tên tab flashcard/flashcards
-    const tabKey = activeTab === 'flashcard' ? 'flashcards' : activeTab;
-    return t(`sidebar.${tabKey}`);
+    return t(`sidebar.${activeTab}`);
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
