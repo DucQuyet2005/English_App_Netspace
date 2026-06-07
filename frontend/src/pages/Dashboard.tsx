@@ -2,6 +2,7 @@ import React from 'react';
 import { useApp } from '../AppContext';
 import { TabType } from '../types';
 import { motion } from 'motion/react';
+import { useLanguage } from '../context/LanguageContext';
 import {
   BookOpen,
   History,
@@ -15,34 +16,31 @@ import {
 
 export const Dashboard: React.FC = () => {
   const { words, attempts, setActiveTab, settings, currentUser } = useApp();
+  const { language, t } = useLanguage();
 
   const learnedCount = words.filter(w => w.learned).length;
-  // Số từ cần ôn: Những từ chưa thuộc, hoặc những từ đã quá thời gian ôn tập
   const wordsToReview = words.filter(w => !w.learned || new Date(w.nextReviewDate) <= new Date()).length;
 
-  // Tính điểm trung bình các lượt quiz gần nhất
   const avgQuizScore = attempts.length > 0
     ? Math.round(attempts.reduce((acc, curr) => acc + curr.score, 0) / attempts.length)
     : 0;
 
-  // Hiển thị điểm trên thang điểm 10
   const avgScoreFormatted = (avgQuizScore / 10).toFixed(1);
 
-  // Thống kê từ mới học được 7 ngày qua (để vẽ biểu đồ)
-  // Thực tế ta nhóm từ theo ngày tạo trong 7 ngày qua.
-  // Để biểu đồ hiển thị sinh động, ta sẽ phân phối số từ đã học theo các thứ trong tuần hiện tại: T2, T3, T4, T5, T6, T7, CN
-  const daysOfWeek = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
-  const mockWeeklyData = [3, 5, 2, 7, 4, 6, 5]; // Số lượng từ mới học mỗi ngày trong tuần
+  // Dịch các Thứ trong biểu đồ
+  const daysOfWeek = language === 'vi' 
+    ? ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'] 
+    : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  
+  const mockWeeklyData = [3, 5, 2, 7, 4, 6, 5]; 
   const maxWordCount = Math.max(...mockWeeklyData, 1);
 
-  // Mục tiêu hôm nay
   const dailyLearingGoal = settings.dailyGoal || 5;
   const learnedToday = Math.min(learnedCount, dailyLearingGoal);
   const goalProgressPercent = Math.min(100, Math.round((learnedToday / dailyLearingGoal) * 100));
 
-  const userName = currentUser?.displayName || 'học viên';
+  const userName = currentUser?.displayName || (language === 'vi' ? 'học viên' : 'student');
 
-  // Tăng cường hoạt động nhanh với Framer Motion
   const containerVariants = {
     hidden: { opacity: 0 },
     show: {
@@ -75,16 +73,16 @@ export const Dashboard: React.FC = () => {
         
         <div className="relative z-10">
           <h3 className="text-3xl md:text-4xl font-serif-title text-slate-800 dark:text-slate-100 tracking-tight leading-tight">
-            Chào mừng <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-teal-600 dark:from-indigo-400 dark:to-teal-400">{userName}</span> 👋
+            {t('dashboard.welcome')} <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-teal-600 dark:from-indigo-400 dark:to-teal-400">{userName}</span> 👋
           </h3>
           <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-3 max-w-lg leading-relaxed">
-            Hôm nay là một ngày tuyệt vời để khám phá thêm {settings.dailyGoal} từ vựng mới. Hãy giữ vững ngọn lửa học tập nhé!
+            {t('dashboard.descPart1')}{settings.dailyGoal || 5}{t('dashboard.descPart2')}
           </p>
         </div>
         <div className="relative z-10 flex gap-2">
           <span className="px-5 py-2.5 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md text-amber-600 dark:text-amber-400 border border-amber-200/50 dark:border-amber-900/30 rounded-2xl text-xs font-bold flex items-center gap-2 shadow-sm">
             <Flame className="w-5 h-5 fill-amber-500 text-amber-500 animate-pulse" /> 
-            15 ngày liên tiếp
+            15 {t('dashboard.streakInfo')}
           </span>
         </div>
       </motion.div>
@@ -96,7 +94,7 @@ export const Dashboard: React.FC = () => {
           <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 dark:bg-indigo-400/5 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
           <div className="relative z-10 flex items-start justify-between">
             <div>
-              <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Từ đã thuộc</p>
+              <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{t('dashboard.learnedWords')}</p>
               <h3 className="text-5xl font-serif-title text-slate-800 dark:text-slate-100 mt-2">{learnedCount}</h3>
             </div>
             <div className="w-14 h-14 rounded-2xl bg-indigo-50/80 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 border border-indigo-100/50 dark:border-indigo-500/20 shadow-inner">
@@ -104,7 +102,7 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
           <div className="relative z-10 mt-6 flex items-center gap-2 text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-500/10 w-fit px-3 py-1.5 rounded-lg">
-            <span>🚀 Tăng trưởng ổn định</span>
+            <span>🚀 {t('dashboard.growth')}</span>
           </div>
         </div>
 
@@ -113,7 +111,7 @@ export const Dashboard: React.FC = () => {
           <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 dark:bg-amber-400/5 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
           <div className="relative z-10 flex items-start justify-between">
             <div>
-              <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Cần ôn tập</p>
+              <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{t('dashboard.reviewNeed')}</p>
               <h3 className="text-5xl font-serif-title text-slate-800 dark:text-slate-100 mt-2">{wordsToReview}</h3>
             </div>
             <div className="w-14 h-14 rounded-2xl bg-amber-50/80 dark:bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-400 border border-amber-100/50 dark:border-amber-500/20 shadow-inner">
@@ -121,7 +119,7 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
           <div className="relative z-10 mt-6 text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-50/80 dark:bg-slate-900 w-fit px-3 py-1.5 rounded-lg border border-slate-200/50 dark:border-slate-800">
-            Khuyên dùng thẻ Flashcard
+            {t('dashboard.recommendFlashcard')}
           </div>
         </div>
 
@@ -130,7 +128,7 @@ export const Dashboard: React.FC = () => {
           <div className="absolute top-0 right-0 w-24 h-24 bg-teal-500/5 dark:bg-teal-400/5 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
           <div className="relative z-10 flex items-start justify-between">
             <div>
-              <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Điểm Quiz</p>
+              <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{t('dashboard.quizScore')}</p>
               <h3 className="text-5xl font-serif-title text-slate-800 dark:text-slate-100 mt-2">
                 {avgScoreFormatted}
                 <span className="text-lg font-medium text-slate-400 dark:text-slate-500 ml-1">/10</span>
@@ -155,11 +153,11 @@ export const Dashboard: React.FC = () => {
         <div className="lg:col-span-8 bg-white/60 dark:bg-slate-950/60 backdrop-blur-xl p-8 rounded-[2rem] border border-slate-200/60 dark:border-slate-800/60 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-10">
             <div>
-              <h4 className="text-xl font-serif-title text-slate-800 dark:text-slate-100">Tiến độ ghi nhớ từ mới</h4>
-              <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">Lượng từ mới nạp theo các ngày trong tuần</p>
+              <h4 className="text-xl font-serif-title text-slate-800 dark:text-slate-100">{t('dashboard.chartTitle')}</h4>
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">{t('dashboard.chartSub')}</p>
             </div>
             <span className="text-xs font-bold px-4 py-2 bg-white dark:bg-slate-900 rounded-xl text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-slate-800/80 shadow-sm">
-              7 ngày qua
+              {t('dashboard.chartDuration')}
             </span>
           </div>
 
@@ -170,7 +168,7 @@ export const Dashboard: React.FC = () => {
                 <div key={idx} className="flex-1 flex flex-col items-center gap-3 group h-full justify-end">
                   {/* Tooltip */}
                   <span className="opacity-0 group-hover:opacity-100 bg-slate-800/90 backdrop-blur text-white text-[11px] font-bold px-2.5 py-1.5 rounded-lg mb-2 absolute -translate-y-[230px] transition-all pointer-events-none shadow-lg">
-                    {val} từ
+                    {val} {t('dashboard.wordsUnit')}
                   </span>
                   
                   {/* Bar */}
@@ -193,7 +191,7 @@ export const Dashboard: React.FC = () => {
 
         {/* Cột Phụ: Truy cập nhanh & Mục tiêu ngày */}
         <div className="lg:col-span-4 flex flex-col gap-6">
-          <h4 className="text-xl font-serif-title text-slate-800 dark:text-slate-100 px-1">Truy cập nhanh</h4>
+          <h4 className="text-xl font-serif-title text-slate-800 dark:text-slate-100 px-1">{t('dashboard.quickAccess')}</h4>
           <div className="grid grid-cols-2 gap-4">
             <button
               onClick={() => setActiveTab('flashcard')}
@@ -202,7 +200,7 @@ export const Dashboard: React.FC = () => {
               <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-125"></div>
               <Layers className="w-7 h-7 p-1.5 bg-white/20 backdrop-blur-md rounded-xl" />
               <div className="mt-2 relative z-10">
-                <span className="text-xs font-medium block text-indigo-100">Thẻ học</span>
+                <span className="text-xs font-medium block text-indigo-100">{t('dashboard.flashcardBtn')}</span>
                 <span className="text-base font-bold block mt-0.5">Flashcard</span>
               </div>
             </button>
@@ -213,8 +211,8 @@ export const Dashboard: React.FC = () => {
             >
               <FileQuestion className="w-7 h-7 p-1.5 bg-teal-50 dark:bg-teal-500/10 text-teal-600 dark:text-teal-400 rounded-xl group-hover:scale-110 transition-transform" />
               <div className="mt-2">
-                <span className="text-xs font-medium block text-slate-500 dark:text-slate-400">Kiểm tra</span>
-                <span className="text-base font-bold block mt-0.5">Mini Quiz</span>
+                <span className="text-xs font-medium block text-slate-500 dark:text-slate-400">{t('dashboard.quizBtn')}</span>
+                <span className="text-base font-bold block mt-0.5">{t('dashboard.miniQuiz')}</span>
               </div>
             </button>
 
@@ -224,8 +222,8 @@ export const Dashboard: React.FC = () => {
             >
               <BookOpen className="w-7 h-7 p-1.5 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl group-hover:scale-110 transition-transform" />
               <div className="mt-2">
-                <span className="text-xs font-medium block text-slate-500 dark:text-slate-400">Danh mục</span>
-                <span className="text-base font-bold block mt-0.5">Từ vựng</span>
+                <span className="text-xs font-medium block text-slate-500 dark:text-slate-400">{t('dashboard.vocabBtn')}</span>
+                <span className="text-base font-bold block mt-0.5">{t('sidebar.vocabulary')}</span>
               </div>
             </button>
 
@@ -235,8 +233,8 @@ export const Dashboard: React.FC = () => {
             >
               <TrendingUp className="w-7 h-7 p-1.5 bg-rose-50 dark:bg-rose-500/10 text-rose-500 dark:text-rose-400 rounded-xl group-hover:scale-110 transition-transform" />
               <div className="mt-2">
-                <span className="text-xs font-medium block text-slate-500 dark:text-slate-400">Lịch sử</span>
-                <span className="text-base font-bold block mt-0.5">Thống kê</span>
+                <span className="text-xs font-medium block text-slate-500 dark:text-slate-400">{t('dashboard.statsBtn')}</span>
+                <span className="text-base font-bold block mt-0.5">{t('dashboard.historyStats')}</span>
               </div>
             </button>
           </div>
@@ -247,7 +245,7 @@ export const Dashboard: React.FC = () => {
             <div className="absolute bottom-0 left-0 w-24 h-24 bg-indigo-500/10 blur-xl rounded-full pointer-events-none"></div>
             <div className="relative z-10 text-white">
               <div className="flex justify-between items-start">
-                <h5 className="font-semibold text-sm tracking-wide text-slate-400">Mục tiêu hôm nay</h5>
+                <h5 className="font-semibold text-sm tracking-wide text-slate-400">{t('dashboard.dailyGoal')}</h5>
                 <div className="p-2 bg-white/10 backdrop-blur rounded-xl">
                   <Award className="w-4 h-4 text-teal-400" />
                 </div>
@@ -255,7 +253,7 @@ export const Dashboard: React.FC = () => {
               <p className="text-4xl font-serif-title mt-4">
                 {learnedToday} <span className="text-xl text-slate-500 font-sans font-medium">/ {dailyLearingGoal}</span>
               </p>
-              <p className="text-xs text-slate-400 mt-1 font-medium">Từ vựng đã ghi nhớ</p>
+              <p className="text-xs text-slate-400 mt-1 font-medium">{t('dashboard.memorized')}</p>
               
               <div className="mt-6 w-full bg-slate-800/80 rounded-full h-2.5 overflow-hidden border border-slate-700/50">
                 <div

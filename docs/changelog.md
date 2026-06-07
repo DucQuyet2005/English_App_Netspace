@@ -25,6 +25,22 @@ Tất cả các thay đổi đáng chú ý đối với project LingoFlow đư�
 
 ---
 
+## [v0.3.0] - 2026-06-07
+
+Bổ sung tính năng chuyển đổi ngôn ngữ hiển thị toàn diện (đa ngôn ngữ i18n) cho giao diện người dùng và lưu trữ cấu hình trên client-side.
+
+### [ADDED]
+
+- **Tính năng Đa ngôn ngữ (i18n - Internationalization)**:
+  - Cho phép người dùng chuyển đổi ngôn ngữ giao diện linh hoạt giữa **Tiếng Việt** (mặc định) và **Tiếng Anh**.
+  - Thiết lập bộ quản lý trạng thái ngôn ngữ `LanguageContext.tsx` lưu trữ lựa chọn của người dùng trong `localStorage` để tải nhanh tức thì (zero latency), tránh giật/nháy giao diện khi tải trang.
+  - Xây dựng tệp từ điển dịch thuật tập trung `translations.ts` chứa đầy đủ từ khóa và chuỗi hiển thị cho Sidebar, TopBar, Dashboard và trang Xác thực (Auth).
+  - Tích hợp nút chuyển đổi đơn (Single Toggle Button) hiển thị cờ quốc gia linh hoạt (Mỹ 🇺🇸 / Việt Nam 🇻🇳) tại Sidebar để chuyển đổi trực quan.
+  - Cập nhật toàn bộ các chuỗi văn bản tĩnh trong các component chính như `Sidebar.tsx`, `TopBar.tsx`, và `Dashboard.tsx` thông qua hàm dịch `t()`.
+  - Tạo tài liệu đặc tả thiết kế chi tiết tại `docs/plans/languageapp.md`.
+
+---
+
 ## [v0.2.0] - 2026-06-06
 
 Tích hợp tính năng phát âm từ vựng (Text-to-Speech) và cập nhật hệ thống tài liệu đồng bộ kiến trúc MERN stack.
