@@ -11,6 +11,7 @@ import {
   User,
   X
 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -19,14 +20,15 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
   const { activeTab, setActiveTab, words, currentUser, settings } = useApp();
+  const { language, toggleLanguage, t } = useLanguage();
 
   const theme = settings.theme ?? (settings.darkMode ? 'dark' : 'normal');
   const sidebarThemeClasses =
     theme === 'light'
       ? 'bg-white border-slate-200 text-slate-900'
       : theme === 'dark'
-      ? 'bg-slate-950 border-slate-800 text-slate-100'
-      : 'bg-sidebar border-slate-200 text-slate-900';
+        ? 'bg-slate-950 border-slate-800 text-slate-100'
+        : 'bg-sidebar border-slate-200 text-slate-900';
 
   const menuItems = [
     { id: 'dashboard' as TabType, label: 'Bảng điều khiển', icon: LayoutDashboard },
@@ -54,9 +56,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => 
         />
       )}
 
-      <aside className={`fixed left-0 top-0 h-full w-72 h-screen flex flex-col border-r z-50 transition-transform duration-300 ${
-        isOpen ? 'translate-x-0' : '-translate-x-full'
-      } md:translate-x-0 ${sidebarThemeClasses}`}>
+      <aside className={`fixed left-0 top-0 h-full w-72 h-screen flex flex-col border-r z-50 transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full'
+        } md:translate-x-0 ${sidebarThemeClasses}`}>
         {/* Brand Logo & Close Button */}
         <div className="p-8 flex items-center justify-between">
           <div>
@@ -88,14 +89,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => 
                   setActiveTab(item.id);
                   if (onClose) onClose();
                 }}
-                className={`w-full flex items-center gap-4 px-6 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                  isActive
-                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/25 dark:shadow-indigo-600/10 scale-[1.02]'
-                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800/60 hover:text-indigo-600 dark:hover:text-indigo-400'
-                }`}
+                className={`w-full flex items-center gap-4 px-6 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 ${isActive
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/25 dark:shadow-indigo-600/10 scale-[1.02]'
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800/60 hover:text-indigo-600 dark:hover:text-indigo-400'
+                  }`}
               >
                 <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-slate-500 dark:text-slate-400 group-hover:text-indigo-600'}`} />
-                <span>{item.label}</span>
+                <span>{t('sidebar.' + item.id)}</span>
               </button>
             );
           })}
@@ -108,14 +108,39 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => 
               setActiveTab('settings');
               if (onClose) onClose();
             }}
-            className={`w-full flex items-center gap-4 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${
-              activeTab === 'settings'
-                ? 'bg-indigo-600 text-white shadow-lg'
-                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800 hover:text-indigo-600'
-            }`}
+            className={`w-full flex items-center gap-4 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${activeTab === 'settings'
+              ? 'bg-indigo-600 text-white shadow-lg'
+              : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800 hover:text-indigo-600'
+              }`}
           >
             <Settings className="w-5 h-5 text-slate-500 dark:text-slate-400" />
-            <span>Cài đặt</span>
+            <span>{t('sidebar.settings')}</span> {/* Đổi sang dùng hàm t() */}
+          </button>
+          {/* NÚT CHUYỂN ĐỔI NGÔN NGỮ */}
+          <button
+            onClick={toggleLanguage}
+            className="w-full flex items-center justify-between px-6 py-3 rounded-xl text-sm font-semibold border border-slate-200/50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 hover:bg-slate-200/60 dark:hover:bg-slate-800/80 transition-all duration-300 group cursor-pointer"
+          >
+            <div className="flex items-center gap-4">
+              {language === 'vi' ? (
+                <>
+                  <span className="text-lg leading-none" role="img" aria-label="English">🇺🇸</span>
+                  <span className="text-slate-700 dark:text-slate-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                    English
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="text-lg leading-none" role="img" aria-label="Tiếng Việt">🇻🇳</span>
+                  <span className="text-slate-700 dark:text-slate-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                    Tiếng Việt
+                  </span>
+                </>
+              )}
+            </div>
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-200/60 dark:bg-slate-800">
+              {language === 'vi' ? 'EN' : 'VI'}
+            </span>
           </button>
 
           {/* User Card */}
