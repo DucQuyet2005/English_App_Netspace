@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../AppContext';
-import { UserPlus, Mail, Lock, ArrowLeft } from 'lucide-react';
+import { UserPlus, Mail, Lock, User } from 'lucide-react';
 
 interface RegisterPageProps {
   onSwitch: () => void;
@@ -45,7 +45,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onSwitch }) => {
         <div>
           <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">Tên hiển thị</label>
           <div className="flex items-center gap-3 rounded-3xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 px-4 py-3">
-            <ArrowLeft className="w-5 h-5 text-slate-400 dark:text-slate-500" />
+            <User className="w-5 h-5 text-slate-400 dark:text-slate-500" />
             <input
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}

@@ -1,24 +1,34 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=JetBrains+Mono:wght@400;500;700&display=swap');
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Lora", Georgia, Cambria, "Times New Roman", Times, serif;
   --font-display: "Lora", Georgia, Cambria, serif;
   --font-mono: "JetBrains Mono", monospace;
+  --font-title: var(--font-serif);
 
   /* Natural Tones colors mapped to default tailwind classes */
   /* Warm Slate tones */
   --color-slate-50: #f9f8f4;      /* Soft Paper background */
   --color-slate-100: #f2efe7;     /* Light warm container bg */
+  --color-slate-150: #e7e4d6;     /* Custom light text / border */
   --color-slate-200: #d8d3c5;     /* Sidebar border / Divider lines */
+  --color-slate-250: #cfc9b9;
   --color-slate-300: #c6bfaf;     /* Muted border lines */
+  --color-slate-350: #ab9f8e;
   --color-slate-400: #8c8573;     /* Placeholder grey */
+  --color-slate-450: #7b7463;
   --color-slate-500: #6b6454;     /* Secondary / Muted body text */
+  --color-slate-550: #5f594a;
   --color-slate-600: #544e40;     /* General body text */
   --color-slate-705: #423d32;
   --color-slate-800: #2c2c24;     /* Core dark text / Headings */
+  --color-slate-850: #23231c;
   --color-slate-900: #1b1b15;     /* Dark organic night bg */
+  --color-slate-905: #1e1e17;
   --color-slate-950: #22221b;     /* Dark organic night cards */
 
   /* Primary Accent Olive mapped to Indigo */
@@ -81,7 +91,7 @@ body {
 
 /* Serif font helper for gorgeous, organic literary typography */
 .font-serif-title {
-  font-family: var(--font-serif);
+  font-family: var(--font-title);
   font-weight: 600;
   letter-spacing: -0.02em;
 }
@@ -108,16 +118,60 @@ body {
 /* Theme overrides applied by adding class on <html> (document.documentElement) */
 html.theme-light {
   color-scheme: light;
+  --font-title: var(--font-sans);
+
   --color-slate-50: #ffffff;
   --color-slate-100: #f8fafc;
+  --color-slate-150: #f1f5f9;
   --color-slate-200: #e5e7eb;
+  --color-slate-250: #e2e8f0;
   --color-slate-300: #d1d5db;
+  --color-slate-350: #cbd5e1;
   --color-slate-400: #94a3b8;
+  --color-slate-450: #64748b;
   --color-slate-500: #475569;
+  --color-slate-550: #334155;
   --color-slate-600: #334155;
   --color-slate-700: #1e293b;
   --color-slate-800: #0f172a;
+  --color-slate-850: #0b1329;
   --color-slate-900: #020617;
+  --color-slate-905: #010410;
+  --color-slate-950: #010208;
+
+  /* Vibrant modern accents for Light theme */
+  --color-indigo-50: #eef2ff;
+  --color-indigo-100: #e0e7ff;
+  --color-indigo-200: #c7d2fe;
+  --color-indigo-300: #a5b4fc;
+  --color-indigo-400: #818cf8;
+  --color-indigo-500: #6366f1;
+  --color-indigo-600: #4f46e5;
+  --color-indigo-700: #4338ca;
+  --color-indigo-800: #3730a3;
+  --color-indigo-900: #312e81;
+
+  --color-teal-50: #f0fdfa;
+  --color-teal-100: #ccfbf1;
+  --color-teal-200: #99f6e4;
+  --color-teal-300: #5eead4;
+  --color-teal-400: #2dd4bf;
+  --color-teal-500: #14b8a6;
+  --color-teal-600: #0d9488;
+  --color-teal-700: #0f766e;
+  --color-teal-800: #115e59;
+  --color-teal-900: #134e4a;
+
+  --color-amber-50: #fffbeb;
+  --color-amber-100: #fef3c7;
+  --color-amber-200: #fde68a;
+  --color-amber-300: #fcd34d;
+  --color-amber-400: #fbbf24;
+  --color-amber-500: #f59e0b;
+  --color-amber-600: #d97706;
+  --color-amber-700: #b45309;
+  --color-amber-800: #92400e;
+  --color-amber-900: #78350f;
 
   --color-paper: #ffffff;
   --color-sidebar: #f8fafc;
@@ -128,21 +182,62 @@ html.theme-light {
   --shadow-lg: 0 18px 48px rgba(15, 23, 42, 0.12);
 }
 
-
-
 html.dark {
   color-scheme: dark;
+  --font-title: var(--font-sans);
+
   --color-slate-50: #ffffff;
   --color-slate-100: #fbfbfb;
+  --color-slate-150: #f6f6f6;
   --color-slate-200: #f2f2f2;
+  --color-slate-250: #ebebeb;
   --color-slate-300: #e6e6e6;
+  --color-slate-350: #dadada;
   --color-slate-400: #cfcfcf;
+  --color-slate-450: #adadad;
   --color-slate-500: #8b8a82;
+  --color-slate-550: #585752;
   --color-slate-600: #262522;
   --color-slate-700: #22221b;
   --color-slate-800: #1b1b15;
+  --color-slate-850: #151511;
   --color-slate-900: #0f0f0d;
+  --color-slate-905: #0d0d0b;
   --color-slate-950: #0b0b09;
+
+  /* Vibrant dark-optimized accents for Dark theme (inverted for high contrast) */
+  --color-indigo-50: #1e1b4b;
+  --color-indigo-100: #312e81;
+  --color-indigo-200: #3730a3;
+  --color-indigo-300: #4338ca;
+  --color-indigo-400: #4f46e5;
+  --color-indigo-500: #6366f1;
+  --color-indigo-600: #818cf8;
+  --color-indigo-700: #a5b4fc;
+  --color-indigo-800: #c7d2fe;
+  --color-indigo-900: #e0e7ff;
+
+  --color-teal-50: #042f2e;
+  --color-teal-100: #134e4a;
+  --color-teal-200: #115e59;
+  --color-teal-300: #0f766e;
+  --color-teal-400: #0d9488;
+  --color-teal-500: #14b8a6;
+  --color-teal-600: #2dd4bf;
+  --color-teal-700: #5eead4;
+  --color-teal-800: #99f6e4;
+  --color-teal-900: #ccfbf1;
+
+  --color-amber-50: #451a03;
+  --color-amber-100: #78350f;
+  --color-amber-200: #92400e;
+  --color-amber-300: #b45309;
+  --color-amber-400: #d97706;
+  --color-amber-500: #f59e0b;
+  --color-amber-600: #fbbf24;
+  --color-amber-700: #fcd34d;
+  --color-amber-800: #fde68a;
+  --color-amber-900: #fef3c7;
 
   --color-paper: #0b0b09;
   --color-sidebar: #0f0f0d;

@@ -28,8 +28,8 @@ interface FrontendUser {
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
-  darkMode: true,
-  theme: 'dark',
+  darkMode: false,
+  theme: 'normal',
   defaultQuizSize: 10,
   dailyGoal: 5,
 };
@@ -107,6 +107,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const checkAuth = async () => {
       const token = getToken();
       if (!token) {
+        applyTheme(DEFAULT_SETTINGS.theme, DEFAULT_SETTINGS.darkMode);
         setLoading(false);
         return;
       }
@@ -126,6 +127,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       } catch (error) {
         // Token expired or invalid
         apiLogout();
+        applyTheme(DEFAULT_SETTINGS.theme, DEFAULT_SETTINGS.darkMode);
       } finally {
         setLoading(false);
       }
