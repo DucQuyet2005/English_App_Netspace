@@ -5,9 +5,10 @@ export const translations = {
     sidebar: {
       dashboard: 'Bảng điều khiển',
       vocabulary: 'Từ vựng',
-      flashcards: 'Thẻ ghi nhớ',
+      flashcard: 'Thẻ ghi nhớ',
       quiz: 'Kiểm tra',
       stats: 'Thống kê',
+      leaderboard: 'Xếp hạng',
       settings: 'Cài đặt',
     },
     topbar: {
@@ -60,9 +61,10 @@ export const translations = {
     sidebar: {
       dashboard: 'Dashboard',
       vocabulary: 'Vocabulary',
-      flashcards: 'Flashcards',
+      flashcard: 'Flashcards',
       quiz: 'Quiz',
       stats: 'Statistics',
+      leaderboard: 'Leaderboard',
       settings: 'Settings',
     },
     topbar: {

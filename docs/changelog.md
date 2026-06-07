@@ -25,6 +25,21 @@ Tất cả các thay đổi đáng chú ý đối với project LingoFlow đư�
 
 ---
 
+## [v0.4.0] - 2026-06-07
+
+Bổ sung hệ thống Gamification với tính năng Bảng xếp hạng tuần (Weekly Leaderboard) giúp tăng cường độ tương tác và động lực học tập của người dùng.
+
+### [ADDED]
+
+- **Tính năng Bảng Xếp Hạng Tuần (Weekly Leaderboard)**:
+  - Thiết kế UI/UX trang `Leaderboard.tsx` theo phong cách Premium Glassmorphism, làm nổi bật Top 3 người dẫn đầu (Vinh danh Huy chương Vàng, Bạc, Đồng) và hiệu ứng viền sáng (glow) đối với hạng của người dùng hiện tại.
+  - Xây dựng thuật toán tính điểm xếp hạng tự động qua API `GET /api/users/leaderboard` bằng kỹ thuật MongoDB Aggregation Pipeline (gom nhóm bài thi Quiz theo tuần và tổng hợp câu đúng).
+  - Thiết lập cơ chế Time-Windowing tự động tính điểm từ 00:00 Thứ Hai đến 23:59 Chủ Nhật, tự động tạo chu kỳ xếp hạng mới mà không cần can thiệp dọn dẹp DB.
+  - Cập nhật thanh điều hướng `Sidebar.tsx` và `MobileNav.tsx` để hiển thị menu "Xếp hạng" (biểu tượng Trophy), hỗ trợ dịch ngôn ngữ i18n.
+  - Lập đặc tả tài liệu triển khai Bảng xếp hạng tuần tại `docs/plans/rank.md`.
+
+---
+
 ## [v0.3.0] - 2026-06-07
 
 Bổ sung tính năng chuyển đổi ngôn ngữ hiển thị toàn diện (đa ngôn ngữ i18n) cho giao diện người dùng và lưu trữ cấu hình trên client-side.

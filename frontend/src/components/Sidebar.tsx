@@ -9,7 +9,8 @@ import {
   TrendingUp,
   Settings,
   User,
-  X
+  X,
+  Trophy
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -35,6 +36,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => 
     { id: 'vocabulary' as TabType, label: 'Từ vựng', icon: BookOpen },
     { id: 'flashcard' as TabType, label: 'Thẻ ghi nhớ', icon: Layers },
     { id: 'quiz' as TabType, label: 'Kiểm tra', icon: FileQuestion },
+    { id: 'leaderboard' as TabType, label: 'Xếp hạng', icon: Trophy },
     { id: 'stats' as TabType, label: 'Thống kê', icon: TrendingUp },
   ];
 
