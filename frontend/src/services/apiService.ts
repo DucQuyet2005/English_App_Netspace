@@ -146,6 +146,12 @@ export const apiUpdateSettings = async (settings: Partial<AppSettings>): Promise
   return data.settings;
 };
 
+// ─── Leaderboard API ─────────────────────────────────────────────
+export const apiGetLeaderboard = async (): Promise<any[]> => {
+  const data = await apiFetch<{ success: boolean; leaderboard: any[] }>('/users/leaderboard');
+  return data.leaderboard;
+};
+
 // ─── Data Sync API ───────────────────────────────────────────────
 export const apiExportData = async (): Promise<any> => {
   const data = await apiFetch<{ success: boolean; data: any }>('/data/export');

@@ -8,6 +8,7 @@ export const translations = {
       flashcard: 'Thẻ ghi nhớ',
       quiz: 'Kiểm tra',
       stats: 'Thống kê',
+      leaderboard: 'Xếp hạng',
       settings: 'Cài đặt',
     },
     topbar: {
@@ -63,6 +64,7 @@ export const translations = {
       flashcard: 'Flashcards',
       quiz: 'Quiz',
       stats: 'Statistics',
+      leaderboard: 'Leaderboard',
       settings: 'Settings',
     },
     topbar: {

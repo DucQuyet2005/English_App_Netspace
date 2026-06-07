@@ -6,7 +6,8 @@ import {
   BookOpen,
   Layers,
   FileQuestion,
-  TrendingUp
+  TrendingUp,
+  Trophy
 } from 'lucide-react';
 
 export const MobileNav: React.FC = () => {
@@ -21,6 +22,7 @@ export const MobileNav: React.FC = () => {
     { id: 'vocabulary' as TabType, label: 'Từ vựng', icon: BookOpen },
     { id: 'flashcard' as TabType, label: 'Học tập', icon: Layers },
     { id: 'quiz' as TabType, label: 'Kiểm tra', icon: FileQuestion },
+    { id: 'leaderboard' as TabType, label: 'Xếp hạng', icon: Trophy },
     { id: 'stats' as TabType, label: 'Thống kê', icon: TrendingUp },
   ];
 

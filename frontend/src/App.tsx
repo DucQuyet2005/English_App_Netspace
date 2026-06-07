@@ -10,6 +10,7 @@ import { Vocabulary } from './pages/Vocabulary';
 import { FlashcardsPage } from './pages/FlashcardsPage';
 import { QuizPage } from './pages/QuizPage';
 import { StatsPage } from './pages/StatsPage';
+import { Leaderboard } from './pages/Leaderboard';
 import { SettingsPage } from './pages/SettingsPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
@@ -30,6 +31,8 @@ const AppContent: React.FC = () => {
         return <FlashcardsPage />;
       case 'quiz':
         return <QuizPage />;
+      case 'leaderboard':
+        return <Leaderboard />;
       case 'stats':
         return <StatsPage />;
       case 'settings':
