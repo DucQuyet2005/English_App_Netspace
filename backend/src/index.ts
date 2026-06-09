@@ -63,6 +63,11 @@ app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", message: "LingoFlow API is running!" });
 });
 
+// Unknown /api routes should return JSON instead of HTML
+app.use('/api', (_req, res) => {
+  res.status(404).json({ success: false, message: 'API route not found.' });
+});
+
 // Start server
 console.log(process.env.MONGODB_URI);
 const start = async () => {
