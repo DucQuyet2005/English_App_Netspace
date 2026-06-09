@@ -50,6 +50,13 @@ LingoFlow là một ứng dụng web học tiếng Anh toàn diện, kết hợp
   - Hộp 4 → Ôn tập sau 7 ngày.
   - Hộp 5 → Ôn tập sau 14 ngày.
 - **Lọc thẻ cần ôn**: Chỉ tải các thẻ có lịch ôn tập đến hạn (`nextReviewDate` ≤ thời điểm hiện tại).
+- **Phát âm từ vựng (Audio Pronunciation)**: Nút loa phát âm cạnh từ vựng trên mặt trước thẻ, ưu tiên file .mp3 thật từ Free Dictionary API, tự động fallback sang Web Speech API (TTS) khi mất mạng.
+- **Kiểm tra phát âm bằng giọng nói (Voice Recognition)**: Nút Microphone cho phép người học đọc to từ vựng và nhận phản hồi chấm điểm phát âm tức thì:
+  - Sử dụng **Web Speech API** tích hợp sẵn trong trình duyệt để nhận diện giọng nói.
+  - Chấm điểm bằng thuật toán **Levenshtein Distance** kết hợp chuẩn hóa chuỗi.
+  - Ngưỡng chấp nhận **75%** tỷ lệ tương đồng. Phản hồi phân 3 mức: Xuất sắc (≥95%), Tốt (75–94%), Cần cải thiện (<75%).
+  - Thanh tiến trình trực quan hiển thị phần trăm độ khớp, tự động ẩn sau 4 giây.
+  - Nút ẩn hoàn toàn nếu trình duyệt không hỗ trợ Web Speech API.
 
 ### 2.5 Quiz (Kiểm Tra)
 
@@ -101,8 +108,10 @@ LingoFlow là một ứng dụng web học tiếng Anh toàn diện, kết hợp
 
 ### FR3: Flashcard
 - [x] Render thẻ flashcard dạng 3D với hiệu ứng lật mặt khi chạm.
-- [x] Nút "Đã nhớ" / "Chưa nhớ" cập nhật chính xác cấp độ Hộp và lịch ôn tập tiếp theo (`nextReviewDate`) trên cơ sở dữ liệu MongoDB.
+- [x] Nút "Đã nhớ" → set `learned=true`, nâng hộp Leitner; Nút "Chưa nhớ" → set `learned=false`, reset về Hộp 1, đồng bộ chính xác trạng thái "Đã thuộc" trong trang Từ vựng.
 - [x] Hiển thị thanh tiến trình ôn tập của bộ thẻ hiện tại.
+- [x] Phát âm từ vựng bằng nút loa (Dictionary API + TTS fallback).
+- [x] Kiểm tra phát âm bằng Microphone: nhận diện giọng nói qua Web Speech API, chấm điểm bằng Levenshtein Distance, phản hồi tức thì với ngưỡng 75%.
 
 ### FR4: Quiz
 - [x] Sinh câu hỏi trắc nghiệm tự động từ kho từ vựng.

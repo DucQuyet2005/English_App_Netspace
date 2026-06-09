@@ -112,6 +112,16 @@ export const apiToggleWordLearned = async (id: string): Promise<Word> => {
   return data.word;
 };
 
+// Set learned status directly (used by Flashcard to avoid toggle side-effects)
+export const apiSetWordLearned = async (id: string, learned: boolean): Promise<Word> => {
+  const data = await apiFetch<{ success: boolean; word: Word }>(`/words/${id}/set-learned`, {
+    method: 'PATCH',
+    body: JSON.stringify({ learned }),
+  });
+  return data.word;
+};
+
+
 export const apiDeleteWord = async (id: string): Promise<void> => {
   await apiFetch(`/words/${id}`, { method: 'DELETE' });
 };

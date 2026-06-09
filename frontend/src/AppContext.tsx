@@ -10,6 +10,7 @@ import {
   apiUpdateWord as apiUpdateWordReq,
   apiDeleteWord as apiDeleteWordReq,
   apiToggleWordLearned as apiToggleLearned,
+  apiSetWordLearned,
   apiGetAttempts,
   apiCreateAttempt,
   apiUpdateSettings as apiUpdateSettingsReq,
@@ -53,6 +54,7 @@ interface AppContextType {
   updateSettings: (settings: AppSettings) => Promise<void>;
   resetData: () => Promise<void>;
   toggleWordLearned: (id: string) => Promise<void>;
+  setWordLearned: (id: string, learned: boolean) => Promise<void>;
   exportData: () => Promise<void>;
   importData: (jsonData: string) => Promise<{ success: boolean; message: string }>;
 }
@@ -227,6 +229,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  // Set learned status trực tiếp (dùng cho Flashcard, không toggle)
+  const setWordLearned = async (id: string, learned: boolean) => {
+    try {
+      const updated = await apiSetWordLearned(id, learned);
+      setWords((prev) => prev.map((w) => (w.id === updated.id ? updated : w)));
+    } catch (error) {
+      console.error('Failed to set learned:', error);
+    }
+  };
+
   const addAttempt = async (correct: number, total: number, duration: number, topic: string) => {
     try {
       const score = Math.round((correct / total) * 100);
@@ -331,6 +343,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateSettings,
         resetData,
         toggleWordLearned,
+        setWordLearned,
         exportData,
         importData,
       }}

@@ -190,6 +190,64 @@ router.patch('/:id/learned', async (req: AuthRequest, res: Response): Promise<vo
   }
 });
 
+// PATCH /api/words/:id/set-learned — set learned status directly (not toggle)
+// Used by Flashcard "Đã nhớ"/"Chưa nhớ" buttons to set a definitive state
+router.patch('/:id/set-learned', async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { learned } = req.body;
+    if (typeof learned !== 'boolean') {
+      res.status(400).json({ success: false, message: 'Trường "learned" phải là boolean.' });
+      return;
+    }
+
+    const existing = await WordModel.findOne({ _id: req.params.id, userId: req.userId });
+    if (!existing) {
+      res.status(404).json({ success: false, message: 'Không tìm thấy từ vựng.' });
+      return;
+    }
+
+    let nextBox = existing.box;
+    let nextReviewDays = 1;
+
+    if (learned) {
+      // Nhớ: nâng hộp (tối đa Hộp 5)
+      nextBox = Math.min(5, existing.box + 1);
+      nextReviewDays = Math.pow(2, nextBox - 1);
+    } else {
+      // Quên: đặt lại Hộp 1, ôn lại ngày mai
+      nextBox = 1;
+      nextReviewDays = 1;
+    }
+
+    const nextReviewDate = new Date();
+    nextReviewDate.setDate(nextReviewDate.getDate() + nextReviewDays);
+
+    existing.learned = learned;
+    existing.box = nextBox;
+    existing.nextReviewDate = nextReviewDate;
+    await existing.save();
+
+    res.json({
+      success: true,
+      word: {
+        id: existing._id.toString(),
+        word: existing.word,
+        ipa: existing.ipa,
+        meaning: existing.meaning,
+        example: existing.example,
+        topic: existing.topic,
+        learned: existing.learned,
+        box: existing.box,
+        nextReviewDate: existing.nextReviewDate.toISOString(),
+        createdAt: existing.createdAt.toISOString(),
+      },
+    });
+  } catch (error) {
+    console.error('Set learned error:', error);
+    res.status(500).json({ success: false, message: 'Lỗi server.' });
+  }
+});
+
 // DELETE /api/words/:id — delete a word
 router.delete('/:id', async (req: AuthRequest, res: Response): Promise<void> => {
   try {
