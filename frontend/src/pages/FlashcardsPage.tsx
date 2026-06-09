@@ -12,18 +12,31 @@ import {
   RefreshCw,
   Tag,
   Volume2,
-  Loader2
+  Loader2,
+  Mic,
+  MicOff,
 } from 'lucide-react';
 import { playPronunciation } from "../utils/audioHelper";
+import {
+  startVoiceRecognition,
+  isSpeechRecognitionSupported,
+  VoiceRecognitionResult,
+} from "../utils/voiceHelper";
 
 export const FlashcardsPage: React.FC = () => {
-  const { words, toggleWordLearned } = useApp();
+  const { words, setWordLearned } = useApp();
 
   const [selectedTopic, setSelectedTopic] = useState('Tất cả');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
 
+  // Audio state
   const [loadingAudio, setLoadingAudio] = useState(false);
+
+  // Voice recognition state
+  const [isListening, setIsListening] = useState(false);
+  const [voiceResult, setVoiceResult] = useState<VoiceRecognitionResult | null>(null);
+  const [showVoiceResult, setShowVoiceResult] = useState(false);
 
   const handlePlayAudio = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -33,6 +46,26 @@ export const FlashcardsPage: React.FC = () => {
     setLoadingAudio(false);
   };
 
+  const handleVoiceCheck = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!activeCard || isListening) return;
+
+    setVoiceResult(null);
+    setShowVoiceResult(false);
+
+    const result = await startVoiceRecognition(
+      activeCard.word,
+      () => setIsListening(true),
+      () => setIsListening(false)
+    );
+
+    if (result) {
+      setVoiceResult(result);
+      setShowVoiceResult(true);
+      // Tự động ẩn kết quả sau 4 giây
+      setTimeout(() => setShowVoiceResult(false), 4000);
+    }
+  };
 
   // Thu thập danh sách chủ đề thực tế từ vựng
   const availableTopics = useMemo(() => {
@@ -41,16 +74,12 @@ export const FlashcardsPage: React.FC = () => {
   }, [words]);
 
   // Bộ thẻ được sắp xếp theo Spaced Repetition đơn giản:
-  // - Ưu tiên các từ có box nhỏ hơn (ôn nhiều hơn)
-  // - Lọc theo chủ đề đã chọn
-  // - Nếu từ đã được đánh dấu là "learned" (đã thuộc), có thể hiển thị sau, nhưng để ôn tập ta lấy toàn bộ từ thuộc chủ đề được chọn.
   const deck = useMemo(() => {
     let filtered = words;
     if (selectedTopic !== 'Tất cả') {
       filtered = words.filter(w => w.topic === selectedTopic);
     }
 
-    // Thuật toán Spaced Repetition: Sắp xếp theo box tăng dần (box 1 ôn đầu tiên), nếu box bằng nhau thì ưu tiên thời gian ôn tập cũ nhất
     return [...filtered].sort((a, b) => {
       if (a.box !== b.box) {
         return a.box - b.box;
@@ -61,26 +90,25 @@ export const FlashcardsPage: React.FC = () => {
 
   const activeCard = deck[currentIndex] || null;
 
-  const handleNext = (remembered: boolean) => {
+  /**
+   * [BUG FIX] Sử dụng setWordLearned thay vì toggleWordLearned để tránh race condition.
+   * - "Đã nhớ" (remembered=true)  → set learned=true, nâng hộp Leitner.
+   * - "Chưa nhớ" (remembered=false) → set learned=false, reset về Hộp 1.
+   */
+  const handleNext = async (remembered: boolean) => {
     if (!activeCard) return;
 
-    // Cập nhật Spaced Repetition thông qua toggleWordLearned
-    // Nếu người dùng nhấn "Đã nhớ", ta đánh dấu là đã thuộc (nếu chưa thuộc) để nâng Spaced box.
-    // Nếu nhấn "Chưa nhớ", ta kiểm tra, nếu đang thuộc thì hạ xuống chưa thuộc (box về 1), nếu chưa thuộc thì giữ nguyên chưa thuộc để ôn tiếp.
-    if (remembered !== activeCard.learned) {
-      toggleWordLearned(activeCard.id);
-    } else if (remembered && activeCard.learned) {
-      // Nếu đã thuộc rồi và vẫn nhớ, ta kích hoạt mốc nâng box tiếp tục
-      toggleWordLearned(activeCard.id); // Toggle hai lần để cập nhật date/box mượt mà
-      toggleWordLearned(activeCard.id);
-    }
+    // Gọi API set trực tiếp thay vì toggle
+    await setWordLearned(activeCard.id, remembered);
 
     setIsFlipped(false);
+    setVoiceResult(null);
+    setShowVoiceResult(false);
+
     setTimeout(() => {
       if (currentIndex < deck.length - 1) {
         setCurrentIndex(prev => prev + 1);
       } else {
-        // Quay lại thẻ đầu tiên nếu hết bộ deck
         setCurrentIndex(0);
       }
     }, 150);
@@ -89,9 +117,12 @@ export const FlashcardsPage: React.FC = () => {
   const handleReset = () => {
     setCurrentIndex(0);
     setIsFlipped(false);
+    setVoiceResult(null);
+    setShowVoiceResult(false);
   };
 
   const progressPct = deck.length > 0 ? Math.round(((currentIndex) / deck.length) * 100) : 0;
+  const voiceSupported = isSpeechRecognitionSupported();
 
   return (
     <div className="space-y-8 max-w-3xl mx-auto flex flex-col items-center">
@@ -168,20 +199,13 @@ export const FlashcardsPage: React.FC = () => {
                   Từ vựng tiếng Anh
                 </span>
 
-                {/* <div className="my-auto space-y-4 relative z-10 w-full">
-                  <h2 className="text-5xl md:text-6xl font-serif-title text-slate-800 dark:text-slate-100 tracking-tight">
-                    {activeCard.word}
-                  </h2>
-                  <p className="text-lg font-medium text-slate-500 dark:text-slate-400 font-serif italic">
-                    {activeCard.ipa}
-                  </p>
-                </div> */}
-
                 <div className="my-auto space-y-4 relative z-10 w-full">
+                  {/* Từ vựng + Nút loa phát âm */}
                   <div className="flex items-center justify-center gap-4">
                     <h2 className="text-5xl md:text-6xl font-serif-title text-slate-800 dark:text-slate-100 tracking-tight">
                       {activeCard.word}
                     </h2>
+                    {/* Nút phát âm */}
                     <button
                       onClick={handlePlayAudio}
                       disabled={loadingAudio}
@@ -198,8 +222,68 @@ export const FlashcardsPage: React.FC = () => {
                   <p className="text-lg font-medium text-slate-500 dark:text-slate-400 font-serif italic">
                     {activeCard.ipa}
                   </p>
-                </div>
 
+                  {/* === VOICE RECOGNITION BUTTON (US-002) === */}
+                  {voiceSupported && (
+                    <div className="flex flex-col items-center gap-3 pt-2">
+                      <button
+                        onClick={handleVoiceCheck}
+                        disabled={isListening}
+                        className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all duration-300 cursor-pointer shadow-sm
+                          ${isListening
+                            ? 'bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-700/50 animate-pulse cursor-not-allowed'
+                            : 'bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 border border-violet-200/60 dark:border-violet-700/40 hover:bg-violet-100 dark:hover:bg-violet-800/40 hover:shadow-md'
+                          }`}
+                        title={isListening ? 'Đang nghe...' : 'Kiểm tra phát âm của bạn'}
+                      >
+                        {isListening ? (
+                          <>
+                            <Mic className="w-4 h-4 animate-pulse" />
+                            <span>Đang nghe...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Mic className="w-4 h-4" />
+                            <span>Kiểm tra phát âm</span>
+                          </>
+                        )}
+                      </button>
+
+                      {/* Kết quả nhận diện giọng nói */}
+                      <AnimatePresence>
+                        {showVoiceResult && voiceResult && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -8, scale: 0.95 }}
+                            transition={{ duration: 0.25 }}
+                            className={`w-full max-w-sm px-4 py-3 rounded-2xl text-xs font-semibold text-center border backdrop-blur-sm
+                              ${voiceResult.isPassed
+                                ? 'bg-emerald-50/90 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border-emerald-200/60 dark:border-emerald-700/40'
+                                : 'bg-rose-50/90 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 border-rose-200/60 dark:border-rose-700/40'
+                              }`}
+                          >
+                            <div className="flex items-center justify-center gap-2 mb-1">
+                              {voiceResult.isPassed ? (
+                                <CheckCircle className="w-4 h-4 flex-shrink-0" />
+                              ) : (
+                                <XCircle className="w-4 h-4 flex-shrink-0" />
+                              )}
+                              <span>{voiceResult.message}</span>
+                            </div>
+                            {/* Thanh tiến trình độ khớp */}
+                            <div className="mt-2 h-1.5 w-full bg-white/40 dark:bg-black/20 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all duration-500 ${voiceResult.isPassed ? 'bg-emerald-500' : 'bg-rose-500'}`}
+                                style={{ width: `${Math.round(voiceResult.similarity * 100)}%` }}
+                              />
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  )}
+                </div>
 
                 <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500 text-xs font-bold bg-slate-50/50 dark:bg-slate-950/50 px-4 py-2 rounded-xl backdrop-blur-sm relative z-10 animate-bounce">
                   <RotateCw className="w-4 h-4" />
@@ -248,7 +332,7 @@ export const FlashcardsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Action buttons */}
+          {/* Action buttons — Đã nhớ / Chưa nhớ */}
           <div className="flex gap-6 w-full max-w-md">
             <button
               onClick={() => handleNext(false)}
@@ -266,8 +350,19 @@ export const FlashcardsPage: React.FC = () => {
               <div className="p-3 bg-teal-50 dark:bg-teal-500/10 rounded-2xl group-hover:bg-teal-100 dark:group-hover:bg-teal-500/20 transition-colors">
                 <CheckCircle className="w-8 h-8 group-hover:scale-110 transition-transform" />
               </div>
-              <span className="text-[11px] font-bold uppercase tracking-widest">Đã nhớ</span>
+              <span className="text-[11px] font-bold uppercase tracking-widest">Đã nhớ ✓</span>
             </button>
+          </div>
+
+          {/* Thông tin hộp Leitner của thẻ hiện tại */}
+          <div className="flex items-center gap-3 text-xs font-semibold text-slate-400 dark:text-slate-500">
+            <span className="bg-slate-100 dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-200/50 dark:border-slate-800">
+              Hộp {activeCard.box} / 5
+            </span>
+            <span>·</span>
+            <span>
+              Ôn tiếp: {new Date(activeCard.nextReviewDate).toLocaleDateString('vi-VN')}
+            </span>
           </div>
         </div>
       ) : (
@@ -280,7 +375,7 @@ export const FlashcardsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Tips box */}
+      {/* Reset button */}
       {deck.length > 0 && (
         <div className="w-full max-w-md text-center">
           <button
