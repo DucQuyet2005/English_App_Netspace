@@ -1,0 +1,281 @@
+/* ============================================================
+   LingoFlow Helper – styles.css
+   Glassmorphism dark theme đồng bộ với LingoFlow app
+   ============================================================ */
+
+/* ─── CSS Reset cho extension elements ─────────────────────── */
+#lingoflow-float-btn,
+#lingoflow-lookup-popup,
+#lingoflow-toast,
+#lingoflow-float-btn *,
+#lingoflow-lookup-popup *,
+#lingoflow-toast * {
+  box-sizing: border-box;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+}
+
+/* ─── Floating Button ──────────────────────────────────────── */
+#lingoflow-float-btn {
+  position: absolute;
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: #fff;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  box-shadow:
+    0 4px 20px rgba(99, 102, 241, 0.5),
+    0 1px 4px rgba(0, 0, 0, 0.3);
+  user-select: none;
+  white-space: nowrap;
+  animation: lf-slide-up 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+#lingoflow-float-btn:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 28px rgba(99, 102, 241, 0.65),
+    0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.lf-btn-icon {
+  font-size: 15px;
+}
+
+@keyframes lf-slide-up {
+  from { opacity: 0; transform: translateY(8px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ─── Lookup Popup ─────────────────────────────────────────── */
+#lingoflow-lookup-popup {
+  position: absolute;
+  z-index: 2147483646;
+  width: 310px;
+  background: linear-gradient(145deg, rgba(15, 15, 30, 0.97) 0%, rgba(25, 20, 50, 0.97) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  border-radius: 16px;
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  animation: lf-popup-in 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
+}
+
+@keyframes lf-popup-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.lf-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.lf-popup-logo {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: linear-gradient(90deg, #a78bfa, #60a5fa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.lf-popup-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+  line-height: 1;
+}
+
+.lf-popup-close:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.lf-popup-word {
+  padding: 12px 16px 6px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.lf-word-text {
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+
+.lf-ipa {
+  font-size: 13px;
+  color: #a78bfa;
+  font-style: italic;
+}
+
+.lf-popup-meaning {
+  padding: 4px 16px 8px;
+  min-height: 48px;
+}
+
+.lf-meaning-text {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+}
+
+.lf-no-meaning {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.45);
+  margin: 0;
+  font-style: italic;
+}
+
+.lf-popup-example {
+  padding: 0 16px 8px;
+}
+
+.lf-example-text {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+  border-left: 2px solid rgba(99, 102, 241, 0.4);
+  padding-left: 10px;
+}
+
+/* Loading spinner */
+.lf-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  padding: 4px 0;
+}
+
+.lf-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(99, 102, 241, 0.3);
+  border-top-color: #6366f1;
+  border-radius: 50%;
+  animation: lf-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+.lf-spinner-small {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: lf-spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+@keyframes lf-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Actions ─────────────────────────────────────────────── */
+.lf-popup-actions {
+  padding: 8px 16px 14px;
+}
+
+.lf-btn-save {
+  width: 100%;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+  letter-spacing: 0.01em;
+}
+
+.lf-btn-save:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(99, 102, 241, 0.6);
+}
+
+.lf-btn-save:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.lf-btn-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ─── Toast Notification ──────────────────────────────────── */
+#lingoflow-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 2147483647;
+  max-width: 360px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+#lingoflow-toast.lf-toast-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+#lingoflow-toast.lf-toast-success {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95));
+  border-color: rgba(52, 211, 153, 0.3);
+}
+
+#lingoflow-toast.lf-toast-error {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(185, 28, 28, 0.95));
+  border-color: rgba(252, 165, 165, 0.3);
+}
+
+#lingoflow-toast.lf-toast-offline {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.95), rgba(217, 119, 6, 0.95));
+  border-color: rgba(253, 211, 77, 0.3);
+}
+
+#lingoflow-toast.lf-toast-auth {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.95), rgba(139, 92, 246, 0.95));
+  border-color: rgba(167, 139, 250, 0.3);
+}

@@ -17,11 +17,39 @@ Tất cả các thay đổi đáng chú ý đối với project LingoFlow đư�
 
 ### [PLANNED]
 
-- AI-generated example sentences
+- AI-generated example sentences (nghĩa tiếng Việt tự động cho Extension)
 - Collaborative vocabulary sharing
 - Advanced charts & analytics
 - Mobile app (React Native)
 - PWA support (offline mode)
+- Firefox Extension (WebExtension API)
+
+---
+
+## [v0.6.0] - 2026-06-10
+
+Hoàn thành **Sprint 2**: Triển khai Chrome Extension **LingoFlow Helper** (US-003) — cho phép người học bôi đen từ tiếng Anh trên bất kỳ trang web nào và lưu vào kho từ vựng LingoFlow tức thì.
+
+### [ADDED]
+
+- **Chrome Extension – LingoFlow Helper (Manifest v3)**:
+  - **Floating Button**: Content script tự động hiển thị nút ⚡ **LingoFlow** nổi lên gần selection khi người dùng bôi đen từ tiếng Anh (1–5 từ) trên bất kỳ trang web nào.
+  - **Lookup Popup**: Popup tra nghĩa ngay tại chỗ — hiển thị từ, IPA, định nghĩa và câu ví dụ (lấy từ `/api/words/lookup`). Có nút "💾 Lưu vào LingoFlow".
+  - **Context Menu (Chuột phải)**: Fallback khi floating button bị chặn bởi CSP — menu "💾 Lưu '{từ}' vào LingoFlow" luôn hoạt động ổn định.
+  - **Popup UI đăng nhập**: Giao diện `popup.html` cho phép nhập email/password để đăng nhập vào tài khoản LingoFlow. Lưu JWT token vào `chrome.storage.local`. Hiển thị tên người dùng khi đã đăng nhập.
+  - **Cấu hình Backend URL**: Trường nhập API URL trong popup — hỗ trợ cả local dev (`http://localhost:5000/api`) và production server.
+  - **Toast thông báo**: Thông báo màu nổi góc phải dưới màn hình theo 4 loại: `success` (xanh), `error` (đỏ), `offline` (cam), `auth` (tím).
+  - **Offline Sync Queue**: Khi mất mạng, từ vựng được đưa vào hàng đợi `chrome.storage.local`. Badge icon hiển thị số đếm cam "+N". Chrome Alarm 1 phút một lần kiểm tra mạng và tự đồng bộ thầm lặng.
+  - Tạo file tài liệu kỹ thuật đầy đủ tại `docs/plans/extension.md`.
+
+- **API Backend mới `GET /api/words/lookup?word=xxx`**:
+  - Endpoint tra nghĩa phía server (proxy): gọi Free Dictionary API từ backend, tránh vấn đề CORS khi extension gọi trực tiếp.
+  - Trả về: `{ word, ipa, meaning, example }`. Nếu từ không tìm thấy, trả về cấu trúc rỗng với `notFound: true` để extension vẫn lưu được từ.
+  - Timeout 5 giây — nếu quá hạn, extension fallback sang gọi Free Dictionary API trực tiếp.
+
+### [CHANGED]
+
+- **`backend/src/index.ts` — CORS**: Thêm `chrome-extension://` và `moz-extension://` vào danh sách allowed origins để Chrome Extension có thể gọi API thành công.
 
 ---
 

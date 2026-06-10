@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LingoFlow Helper</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 320px;
+      min-height: 200px;
+      background: linear-gradient(145deg, #0f0f1e 0%, #1a1040 50%, #0d1b2a 100%);
+      color: #e2e8f0;
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+      font-size: 14px;
+    }
+
+    /* ─── Header ────────────────────────────────────────── */
+    .header {
+      padding: 18px 20px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .logo {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    }
+
+    .logo-text h1 {
+      font-size: 15px;
+      font-weight: 700;
+      background: linear-gradient(90deg, #a78bfa, #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .logo-text p {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.4);
+      letter-spacing: 0.05em;
+    }
+
+    /* ─── Sections ──────────────────────────────────────── */
+    .section {
+      padding: 16px 20px;
+    }
+
+    /* ─── Status card ───────────────────────────────────── */
+    .status-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .status-dot.connected { background: #10b981; box-shadow: 0 0 8px #10b981; }
+    .status-dot.disconnected { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
+    .status-dot.loading { background: #f59e0b; animation: pulse 1.2s infinite; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .status-info strong {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #f1f5f9;
+    }
+
+    .status-info span {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.45);
+    }
+
+    /* ─── Offline badge ─────────────────────────────────── */
+    .offline-badge {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 14px;
+      font-size: 12px;
+      color: #fcd34d;
+    }
+
+    .offline-badge.visible { display: flex; }
+
+    .offline-badge strong { color: #fbbf24; }
+
+    /* ─── Form ──────────────────────────────────────────── */
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.55);
+      margin-bottom: 6px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      color: #f1f5f9;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    input:focus {
+      border-color: #6366f1;
+      background: rgba(99, 102, 241, 0.08);
+    }
+
+    input::placeholder {
+      color: rgba(255, 255, 255, 0.25);
+    }
+
+    /* ─── Server URL input ──────────────────────────────── */
+    .server-section {
+      padding: 0 20px 16px;
+    }
+
+    .server-label {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.3);
+      margin-bottom: 5px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .server-input-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .server-input-row input {
+      flex: 1;
+      padding: 8px 10px;
+      font-size: 12px;
+    }
+
+    .btn-set-server {
+      padding: 8px 12px;
+      background: rgba(99, 102, 241, 0.2);
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      border-radius: 8px;
+      color: #a78bfa;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-set-server:hover {
+      background: rgba(99, 102, 241, 0.35);
+    }
+
+    /* ─── Buttons ───────────────────────────────────────── */
+    .btn-primary {
+      width: 100%;
+      padding: 11px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+      margin-top: 4px;
+      letter-spacing: 0.01em;
+    }
+
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .btn-logout {
+      width: 100%;
+      padding: 9px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      border-radius: 10px;
+      color: #f87171;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 10px;
+    }
+
+    .btn-logout:hover { background: rgba(239, 68, 68, 0.2); }
+
+    /* ─── Error msg ─────────────────────────────────────── */
+    .error-msg {
+      font-size: 12px;
+      color: #f87171;
+      margin-top: 8px;
+      display: none;
+      text-align: center;
+    }
+
+    .error-msg.visible { display: block; }
+
+    /* ─── Divider ───────────────────────────────────────── */
+    .divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.07);
+      margin: 0 20px 16px;
+    }
+
+    /* ─── Footer ────────────────────────────────────────── */
+    .footer {
+      padding: 10px 20px 16px;
+      text-align: center;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.25);
+    }
+
+    .footer a {
+      color: #6366f1;
+      text-decoration: none;
+    }
+
+    /* ─── Loading overlay ───────────────────────────────── */
+    .loading-overlay {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+      gap: 10px;
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 13px;
+    }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(99, 102, 241, 0.3);
+      border-top-color: #6366f1;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ─── Sections visibility ───────────────────────────── */
+    #loading-section { }
+    #login-section { display: none; }
+    #profile-section { display: none; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">⚡</div>
+    <div class="logo-text">
+      <h1>LingoFlow Helper</h1>
+      <p>CHROME EXTENSION v1.0</p>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div id="loading-section">
+    <div class="loading-overlay">
+      <div class="spinner"></div>
+      <span>Đang kiểm tra phiên đăng nhập...</span>
+    </div>
+  </div>
+
+  <!-- Login Section -->
+  <div id="login-section" class="section">
+    <div style="margin-bottom: 16px; color: rgba(255,255,255,0.55); font-size: 13px;">
+      Đăng nhập để lưu từ vựng sang tài khoản LingoFlow của bạn.
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="login-email" placeholder="your@email.com" />
+    </div>
+    <div class="form-group">
+      <label>Mật khẩu</label>
+      <input type="password" id="login-password" placeholder="••••••••" />
+    </div>
+    <p class="error-msg" id="login-error"></p>
+    <button class="btn-primary" id="btn-login">🔑 Đăng nhập</button>
+  </div>
+
+  <!-- Profile / Connected Section -->
+  <div id="profile-section" class="section">
+    <div class="status-card">
+      <div class="status-dot connected" id="status-dot"></div>
+      <div class="status-info">
+        <strong id="user-display-name">Đang tải...</strong>
+        <span id="user-email"></span>
+      </div>
+    </div>
+
+    <div class="offline-badge" id="offline-badge">
+      🟠 <span><strong id="offline-count">0</strong> từ đang chờ đồng bộ khi có mạng.</span>
+    </div>
+
+    <p style="font-size: 13px; color: rgba(255,255,255,0.55); margin-bottom: 14px;">
+      💡 Bôi đen từ tiếng Anh trên bất kỳ trang web nào, rồi nhấn nút <strong style="color: #a78bfa;">LingoFlow</strong> xuất hiện để tra nghĩa và lưu từ.
+    </p>
+
+    <button class="btn-logout" id="btn-logout">🚪 Đăng xuất</button>
+  </div>
+
+  <!-- Server URL Config -->
+  <div class="divider"></div>
+  <div class="server-section">
+    <p class="server-label">Backend API URL</p>
+    <div class="server-input-row">
+      <input type="text" id="server-url" placeholder="https://your-backend.onrender.com/api" />
+      <button class="btn-set-server" id="btn-set-server">Lưu</button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <a href="https://github.com/DucQuyet2005/English_App_Netspace" target="_blank">LingoFlow</a>
+    · Học từ vựng mọi lúc mọi nơi
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

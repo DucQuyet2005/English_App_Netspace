@@ -7,7 +7,77 @@ const router = Router();
 // All routes require authentication
 router.use(authMiddleware);
 
-// GET /api/words — list words with optional filters
+// GET /api/words/lookup?word=xxx — lookup word definition (for Chrome Extension)
+// Tra nghĩa từ qua Free Dictionary API, trả về ipa + meaning + example
+router.get("/lookup", async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { word } = req.query;
+
+    if (!word || typeof word !== "string" || word.trim().length === 0) {
+      res.status(400).json({ success: false, message: "Thiếu tham số 'word'." });
+      return;
+    }
+
+    const cleanWord = word.trim().toLowerCase();
+
+    // Gọi Free Dictionary API
+    const dictRes = await fetch(
+      `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(cleanWord)}`,
+      {
+        headers: { "User-Agent": "LingoFlow/1.0" },
+        signal: AbortSignal.timeout(5000),
+      }
+    );
+
+    if (!dictRes.ok) {
+      // Từ không tìm thấy - trả về cấu trúc rỗng để extension vẫn có thể lưu
+      res.json({
+        success: true,
+        word: cleanWord,
+        ipa: "",
+        meaning: "",
+        example: "",
+        notFound: true,
+      });
+      return;
+    }
+
+    const data = (await dictRes.json()) as any[];
+    const entry = data[0];
+
+    // Lấy phonetic IPA
+    const ipa =
+      entry?.phonetic ||
+      entry?.phonetics?.find((p: any) => p.text)?.text ||
+      "";
+
+    // Lấy định nghĩa đầu tiên
+    const firstMeaning = entry?.meanings?.[0];
+    const firstDef = firstMeaning?.definitions?.[0];
+    const partOfSpeech = firstMeaning?.partOfSpeech || "";
+
+    const meaning = firstDef?.definition || "";
+    const example = firstDef?.example || "";
+
+    res.json({
+      success: true,
+      word: entry?.word || cleanWord,
+      ipa,
+      meaning: meaning ? `(${partOfSpeech}) ${meaning}` : "",
+      example,
+    });
+  } catch (error: any) {
+    // Timeout hoặc mạng lỗi - trả về rỗng để extension tự xử lý
+    if (error?.name === "TimeoutError" || error?.name === "AbortError") {
+      res.json({ success: true, word: req.query.word, ipa: "", meaning: "", example: "" });
+      return;
+    }
+    console.error("Word lookup error:", error);
+    res.status(500).json({ success: false, message: "Lỗi server khi tra nghĩa." });
+  }
+});
+
+
 router.get("/", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { search, topic, learned, sort } = req.query;
