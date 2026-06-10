@@ -218,7 +218,8 @@ router.get("/", async (req: AuthRequest, res: Response): Promise<void> => {
 // POST /api/words — create a new word
 router.post("/", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { word, ipa, meaning, example, topic, learned } = req.body;
+    // Risk: createdAt mismatch — chấp nhận createdAt từ Extension (offline sync)
+    const { word, ipa, meaning, example, topic, learned, createdAt } = req.body;
 
     if (!word || !meaning) {
       res
@@ -227,16 +228,45 @@ router.post("/", async (req: AuthRequest, res: Response): Promise<void> => {
       return;
     }
 
+    const cleanWord = word.trim();
+
+    // Kiểm tra xem từ đã tồn tại chưa (không phân biệt hoa thường)
+    const existingWord = await WordModel.findOne({
+      userId: req.userId,
+      word: { $regex: new RegExp(`^${cleanWord.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&")}$`, "i") },
+    });
+
+    if (existingWord) {
+      res.status(400).json({
+        success: false,
+        message: `Từ "${cleanWord}" đã tồn tại trong kho từ vựng của bạn.`,
+      });
+      return;
+    }
+
+    // Risk: createdAt mismatch — sử dụng thời điểm người dùng thực sự lưu (khi offline)
+    // Validate và parse createdAt nếu có (từ Extension offline sync)
+    let wordCreatedAt: Date | undefined;
+    if (createdAt) {
+      const parsedDate = new Date(createdAt);
+      // Chỉ dùng nếu là ngày hợp lệ và không trong tương lai quá 1 phút
+      if (!isNaN(parsedDate.getTime()) && parsedDate <= new Date(Date.now() + 60000)) {
+        wordCreatedAt = parsedDate;
+      }
+    }
+
     const newWord = await WordModel.create({
       userId: req.userId,
-      word: word.trim(),
+      word: cleanWord,
       ipa: ipa?.trim() || "",
       meaning: meaning.trim(),
       example: example?.trim() || "",
       topic: topic?.trim() || "Chung",
       learned: learned || false,
       box: 1,
-      nextReviewDate: new Date(),
+      nextReviewDate: wordCreatedAt || new Date(),
+      // Nếu có createdAt từ offline, dùng ngay; mongoose sẽ dùng Date.now() nếu undefined
+      ...(wordCreatedAt && { createdAt: wordCreatedAt }),
     });
 
     res.status(201).json({

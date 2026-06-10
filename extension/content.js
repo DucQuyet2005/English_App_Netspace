@@ -146,13 +146,37 @@
       });
 
       if (result?.success) {
+        // Lưu thành công → đóng popup
         cleanup();
-      } else if (result?.reason === 'unauthenticated') {
+      } else if (result?.reason === 'unauthenticated' || result?.reason === 'token_expired') {
+        // Chưa đăng nhập → cho phép thử lại
         saveBtn.disabled = false;
         saveBtn.innerHTML = `💾 Lưu vào LingoFlow`;
       } else if (result?.reason === 'offline') {
+        // Đã lưu tạm offline → đóng popup
         cleanup();
+      } else if (result?.reason === 'queue_full') {
+        // Hàng đợi đầy → hiển thị lỗi, không đóng
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = `⚠️ Hàng đợi đầy`;
+      } else if (result?.reason === 'duplicate') {
+        // Từ đã tồn tại → hiển thị trạng thái rõ ràng, sau 2s cho phép đóng
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = `⚠️ Đã tồn tại`;
+        saveBtn.classList.add('lf-btn-exists');
+        // Sau 2 giây cho phép bấm để đóng popup
+        setTimeout(() => {
+          const btn = document.getElementById('lf-save-btn');
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `✕ Đóng`;
+            btn.classList.remove('lf-btn-exists');
+            btn.classList.add('lf-btn-close');
+            btn.addEventListener('click', (ev) => { ev.stopPropagation(); cleanup(); }, { once: true });
+          }
+        }, 2000);
       } else {
+        // Lỗi khác → cho phép thử lại
         saveBtn.disabled = false;
         saveBtn.innerHTML = `💾 Thử lại`;
       }

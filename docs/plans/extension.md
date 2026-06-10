@@ -74,11 +74,14 @@ Nhấn nút **"Lưu"** để lưu cấu hình vào `chrome.storage.local`.
 ```
 1. Bôi đen từ → Click lưu → Mạng bị ngắt
 2. background.js phát hiện mất kết nối
-3. Từ được đưa vào Offline Sync Queue (chrome.storage.local)
-4. Badge icon hiển thị "+N" màu cam
-5. Khi mạng khôi phục → Alarm 1 phút kích hoạt processSyncQueue()
-6. Tất cả từ chờ được đồng bộ lên server
-7. Toast: "✅ Đã đồng bộ N từ vựng lên LingoFlow!"
+3. Kiểm tra giới hạn: queue < 50 từ mới thêm
+4. Lưu offlineCreatedAt = thời điểm hiện tại (không phải thời điểm sync)
+5. Từ được đưa vào Offline Sync Queue với retryCount = 0
+6. Badge icon hiển thị "+N" màu cam
+7. Khi mạng khôi phục → Alarm 1 phút kích hoạt processSyncQueue()
+8. Sync: gửi kèm offlineCreatedAt để backend lưu đúng thời điểm tạo từ
+9. Nếu từ lỗi 3 lần liên tiếp → bỏ khỏi queue (chống Infinite Retry)
+10. Toast: "✅ Đã đồng bộ N từ vựng offline lên LingoFlow!"
 ```
 
 ---
@@ -117,11 +120,14 @@ Content-Type: application/json
 {
   "word": "prosperous",
   "ipa": "/ˈprɒs.pər.əs/",
-  "meaning": "(adjective) successful in material terms",
+  "meaning": "(tính từ) thịnh vượng, phồn thịnh",
   "example": "a prosperous businessman",
-  "topic": "Extension"
+  "topic": "Extension",
+  "createdAt": "2026-06-10T02:30:00.000Z"  // Tùy chọn: thời điểm offline (offline sync)
 }
 ```
+
+> **Lưu ý**: Trường `createdAt` chỉ được gửi khi đồng bộ từ offline queue. Backend sẽ validate: ngày hợp lệ và không trong tương lai. Nếu không có, backend tự đặt `Date.now()`.
 
 ---
 
@@ -141,13 +147,19 @@ Content-Type: application/json
 ## Edge Cases & Xử lý lỗi
 
 | Tình huống | Hành vi |
-|-----------|---------|
-| Token hết hạn | Hiển thị toast tím: "Vui lòng đăng nhập lại qua icon Extension" |
-| Mất mạng khi lưu | Đưa vào offline queue, badge cam "+N", tự đồng bộ khi có mạng |
+|-----------|----------|
+| Token hết hạn (online) | Toast tím: "Vui lòng đăng nhập lại qua icon Extension" |
+| Token hết hạn (trong lúc sync) | Giữ nguyên offline queue, thông báo đăng nhập lại |
+| Mất mạng khi lưu | Đưa vào offline queue (nếu < 50 từ), badge cam "+N" |
+| **Offline queue đầy (50 từ)** | Không lưu thêm, toast lỗi yêu cầu đồng bộ trước |
+| **Queue gần đầy (40 từ)** | Toast cảnh báo cam dậng sớm |
+| **Lỗi sync liên tục (≥3 lần)** | Từ bị loại khỏi queue, không retry vô hạn |
+| Từ đã tồn tại (400) | Toast: "Từ đã tồn tại", nút ⊠ Đã tồn tại (vô hiệu hóa) |
 | CSP cực đoan chặn inject | Floating button không hiển thị nhưng Context Menu vẫn hoạt động |
 | Từ > 5 từ được bôi đen | Toast lỗi: "Vui lòng chọn từ ngắn hơn (tối đa 5 từ)" |
 | Từ không có trong từ điển | Lưu từ với `meaning=""`, người dùng có thể sửa sau trong app |
 | Server timeout | Lookup fallback sang Free Dictionary API trực tiếp |
+| **Sync sau offline dài ngày** | `createdAt` trong MongoDB = thời điểm người dùng lưu từ gốc, không bị lệch |
 
 ---
 

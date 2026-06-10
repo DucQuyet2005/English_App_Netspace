@@ -2,26 +2,32 @@
 // LingoFlow Helper – background.js (Service Worker, MV3)
 // ============================================================
 
-const API_BASE_KEY = 'lingoflow_api_base';
-const TOKEN_KEY = 'lingoflow_token';
-const OFFLINE_QUEUE_KEY = 'lingoflow_offline_queue';
-const DEFAULT_API_BASE = 'https://english-app-netspace-backend.onrender.com/api';
+const API_BASE_KEY = "lingoflow_api_base";
+const TOKEN_KEY = "lingoflow_token";
+const OFFLINE_QUEUE_KEY = "lingoflow_offline_queue";
+const DEFAULT_API_BASE =
+  "https://english-app-netspace-backend.onrender.com/api";
+
+// ─── Risk Management Constants ────────────────────────────────
+const MAX_QUEUE_SIZE = 50;       // Risk: Storage Exceeded — tối đa 50 từ trong hàng đợi
+const MAX_RETRY_COUNT = 3;       // Risk: Infinite Retry Loop — bỏ mục sau 3 lần thất bại
+const QUEUE_WARN_THRESHOLD = 40; // Cảnh báo khi queue gần đầy (80% của 50)
 
 // ─── Khởi tạo Context Menu ───────────────────────────────────
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
-    id: 'save-to-lingoflow',
+    id: "save-to-lingoflow",
     title: '💾 Lưu "%s" vào LingoFlow',
-    contexts: ['selection'],
+    contexts: ["selection"],
   });
 
   // Tạo alarm kiểm tra offline queue mỗi 1 phút
-  chrome.alarms.create('sync-offline-queue', { periodInMinutes: 1 });
+  chrome.alarms.create("sync-offline-queue", { periodInMinutes: 1 });
 });
 
 // ─── Context Menu Click ──────────────────────────────────────
 chrome.contextMenus.onClicked.addListener(async (info) => {
-  if (info.menuItemId !== 'save-to-lingoflow') return;
+  if (info.menuItemId !== "save-to-lingoflow") return;
 
   const selectedText = info.selectionText?.trim();
   if (!selectedText) return;
@@ -30,9 +36,9 @@ chrome.contextMenus.onClicked.addListener(async (info) => {
   const wordCount = selectedText.split(/\s+/).length;
   if (wordCount > 5) {
     await notifyAllTabs({
-      type: 'LINGOFLOW_TOAST',
-      toastType: 'error',
-      message: 'Vui lòng chọn từ hoặc cụm từ ngắn (tối đa 5 từ).',
+      type: "LINGOFLOW_TOAST",
+      toastType: "error",
+      message: "Vui lòng chọn từ hoặc cụm từ ngắn (tối đa 5 từ).",
     });
     return;
   }
@@ -42,22 +48,22 @@ chrome.contextMenus.onClicked.addListener(async (info) => {
 
 // ─── Message từ Content Script ───────────────────────────────
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (message.type === 'SAVE_WORD') {
+  if (message.type === "SAVE_WORD") {
     handleSaveWord(message.word, message.wordData).then(sendResponse);
     return true; // async response
   }
 
-  if (message.type === 'LOOKUP_WORD') {
+  if (message.type === "LOOKUP_WORD") {
     lookupWord(message.word).then(sendResponse);
     return true;
   }
 
-  if (message.type === 'GET_AUTH_STATUS') {
+  if (message.type === "GET_AUTH_STATUS") {
     getAuthStatus().then(sendResponse);
     return true;
   }
 
-  if (message.type === 'GET_QUEUE_COUNT') {
+  if (message.type === "GET_QUEUE_COUNT") {
     getQueueCount().then(sendResponse);
     return true;
   }
@@ -65,7 +71,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
 // ─── Alarm (Offline Sync) ────────────────────────────────────
 chrome.alarms.onAlarm.addListener(async (alarm) => {
-  if (alarm.name === 'sync-offline-queue') {
+  if (alarm.name === "sync-offline-queue") {
     await processSyncQueue();
   }
 });
@@ -149,13 +155,13 @@ async function getWordTranslation(word) {
     const res = await fetch(url);
     if (!res.ok) return "";
     const data = await res.json();
-    
+
     // Parse main translation
     let mainTrans = "";
     if (data[0] && data[0][0] && data[0][0][0]) {
       mainTrans = data[0][0][0].trim().normalize("NFC");
     }
-    
+
     // Parse detailed POS translations
     let posMeanings = [];
     if (data[1] && Array.isArray(data[1])) {
@@ -172,7 +178,7 @@ async function getWordTranslation(word) {
         }
       }
     }
-    
+
     if (posMeanings.length > 0) {
       return posMeanings.join("; ");
     }
@@ -196,12 +202,12 @@ async function lookupWordFallback(word) {
 
     try {
       const res = await fetch(
-        `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`
+        `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`,
       );
       if (res.ok) {
         const data = await res.json();
         const entry = data[0];
-        ipa = entry?.phonetics?.find((p) => p.text)?.text || '';
+        ipa = entry?.phonetics?.find((p) => p.text)?.text || "";
         const firstMeaning = entry?.meanings?.[0];
         const firstDef = firstMeaning?.definitions?.[0];
         partOfSpeech = firstMeaning?.partOfSpeech || "";
@@ -231,9 +237,16 @@ async function lookupWordFallback(word) {
     // Thử dịch trực tiếp từ này nếu gặp lỗi kết nối
     try {
       let meaning = await getWordTranslation(word);
-      return { success: meaning !== "", word, meaning, ipa: "", example: "", notFound: meaning === "" };
+      return {
+        success: meaning !== "",
+        word,
+        meaning,
+        ipa: "",
+        example: "",
+        notFound: meaning === "",
+      };
     } catch {
-      return { success: false, word, meaning: '', ipa: '', example: '' };
+      return { success: false, word, meaning: "", ipa: "", example: "" };
     }
   }
 }
@@ -244,11 +257,12 @@ async function handleSaveWord(word, wordData = null) {
 
   if (!token) {
     await notifyAllTabs({
-      type: 'LINGOFLOW_TOAST',
-      toastType: 'auth',
-      message: 'Vui lòng nhấp vào biểu tượng Extension để đăng nhập trước khi lưu từ mới.',
+      type: "LINGOFLOW_TOAST",
+      toastType: "auth",
+      message:
+        "Vui lòng nhấp vào biểu tượng Extension để đăng nhập trước khi lưu từ mới.",
     });
-    return { success: false, reason: 'unauthenticated' };
+    return { success: false, reason: "unauthenticated" };
   }
 
   // Nếu chưa có wordData (tra nghĩa) → tra nghĩa trước
@@ -260,30 +274,33 @@ async function handleSaveWord(word, wordData = null) {
   // Kiểm tra online
   const isOnline = navigator?.onLine !== false;
   if (!isOnline) {
-    await addToOfflineQueue({ word, wordData });
+    const queued = await addToOfflineQueue({ word, wordData });
     await updateBadge();
-    await notifyAllTabs({
-      type: 'LINGOFLOW_TOAST',
-      toastType: 'offline',
-      message: `Bạn đang ngoại tuyến. Từ "${word}" đã được lưu tạm thời và sẽ tự động đồng bộ khi có kết nối mạng!`,
-    });
-    return { success: false, reason: 'offline' };
+    if (queued) {
+      await notifyAllTabs({
+        type: "LINGOFLOW_TOAST",
+        toastType: "offline",
+        message: `Bạn đang ngoại tuyến. Từ "${word}" đã được lưu tạm thời và sẽ tự động đồng bộ khi có kết nối mạng!`,
+      });
+    }
+    // Nếu queued = false, addToOfflineQueue đã tự thông báo lỗi hàng đợi đầy
+    return { success: false, reason: queued ? "offline" : "queue_full" };
   }
 
   // Gọi API
   try {
     const body = {
       word: wordData?.word || word,
-      ipa: wordData?.ipa || '',
+      ipa: wordData?.ipa || "",
       meaning: wordData?.meaning || `[${word}]`,
-      example: wordData?.example || '',
-      topic: 'Extension',
+      example: wordData?.example || "",
+      topic: "Extension",
     };
 
     const res = await fetch(`${apiBase}/words`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(body),
@@ -292,47 +309,84 @@ async function handleSaveWord(word, wordData = null) {
     if (res.status === 401) {
       // Token hết hạn
       await notifyAllTabs({
-        type: 'LINGOFLOW_TOAST',
-        toastType: 'auth',
-        message: 'Phiên đăng nhập đã hết hạn. Vui lòng nhấp vào biểu tượng Extension để đăng nhập lại.',
+        type: "LINGOFLOW_TOAST",
+        toastType: "auth",
+        message:
+          "Phiên đăng nhập đã hết hạn. Vui lòng nhấp vào biểu tượng Extension để đăng nhập lại.",
       });
       // Xóa token cũ
       await chrome.storage.local.set({ [TOKEN_KEY]: null });
-      return { success: false, reason: 'token_expired' };
+      return { success: false, reason: "token_expired" };
     }
 
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (res.status === 400) {
+      let errData = {};
+      try { errData = await res.json(); } catch {}
+
+      const isDuplicate = errData?.message && /đã tồn tại/i.test(errData.message);
+
+      if (isDuplicate) {
+        // Từ đã tồn tại — hiển thị toast cảnh báo rõ ràng
+        await notifyAllTabs({
+          type: "LINGOFLOW_TOAST",
+          toastType: "warning",
+          message: `⚠️ Từ "${word}" đã tồn tại trong kho từ vựng của bạn.`,
+        });
+        return { success: false, reason: "duplicate" };
+      } else {
+        // Lỗi validation khác (thiếu từ, thiếu nghĩa...)
+        await notifyAllTabs({
+          type: "LINGOFLOW_TOAST",
+          toastType: "error",
+          message: errData?.message || `Dữ liệu không hợp lệ. Vui lòng thử lại.`,
+        });
+        return { success: false, reason: "validation_error" };
+      }
+    }
+
+    if (!res.ok) {
+      let errMsg = `Không thể lưu từ "${word}". Vui lòng thử lại.`;
+      try {
+        const errData = await res.json();
+        if (errData && errData.message) {
+          errMsg = errData.message;
+        }
+      } catch {}
+      throw new Error(errMsg);
+    }
 
     const data = await res.json();
     const savedWord = data.word;
 
-    const displayMeaning = savedWord?.meaning || wordData?.meaning || '';
+    const displayMeaning = savedWord?.meaning || wordData?.meaning || "";
     await notifyAllTabs({
-      type: 'LINGOFLOW_TOAST',
-      toastType: 'success',
-      message: `✅ Đã lưu "${savedWord?.word || word}"${displayMeaning ? ` (${displayMeaning.slice(0, 40)})` : ''} vào LingoFlow!`,
+      type: "LINGOFLOW_TOAST",
+      toastType: "success",
+      message: `✅ Đã lưu "${savedWord?.word || word}"${displayMeaning ? ` (${displayMeaning.slice(0, 40)})` : ""} vào LingoFlow!`,
     });
 
     return { success: true, word: savedWord };
   } catch (err) {
     // Có thể mất mạng đột ngột → đưa vào offline queue
     if (!navigator?.onLine) {
-      await addToOfflineQueue({ word, wordData });
+      const queued = await addToOfflineQueue({ word, wordData });
       await updateBadge();
-      await notifyAllTabs({
-        type: 'LINGOFLOW_TOAST',
-        toastType: 'offline',
-        message: `Mất kết nối! Từ "${word}" đã được lưu tạm thời.`,
-      });
-      return { success: false, reason: 'offline' };
+      if (queued) {
+        await notifyAllTabs({
+          type: "LINGOFLOW_TOAST",
+          toastType: "offline",
+          message: `Mất kết nối! Từ "${word}" đã được lưu tạm thời.`,
+        });
+      }
+      return { success: false, reason: queued ? "offline" : "queue_full" };
     }
 
     await notifyAllTabs({
-      type: 'LINGOFLOW_TOAST',
-      toastType: 'error',
-      message: `Không thể lưu từ "${word}". Vui lòng thử lại.`,
+      type: "LINGOFLOW_TOAST",
+      toastType: "error",
+      message: err.message || `Không thể lưu từ "${word}". Vui lòng thử lại.`,
     });
-    return { success: false, reason: 'error' };
+    return { success: false, reason: "error", message: err.message };
   }
 }
 
@@ -340,8 +394,37 @@ async function handleSaveWord(word, wordData = null) {
 async function addToOfflineQueue(item) {
   const storage = await chrome.storage.local.get(OFFLINE_QUEUE_KEY);
   const queue = storage[OFFLINE_QUEUE_KEY] || [];
-  queue.push({ ...item, timestamp: Date.now() });
+
+  // Risk: Storage Exceeded — kiểm tra giới hạn tối đa trước khi thêm
+  if (queue.length >= MAX_QUEUE_SIZE) {
+    await notifyAllTabs({
+      type: "LINGOFLOW_TOAST",
+      toastType: "error",
+      message: `⚠️ Hàng đợi offline đã đầy (${MAX_QUEUE_SIZE} từ). Vui lòng kết nối mạng để đồng bộ trước khi lưu thêm.`,
+    });
+    return false; // Báo hiệu thất bại
+  }
+
+  // Risk: Data Loss via Cleared Cache — cảnh báo khi queue gần đầy
+  if (queue.length === QUEUE_WARN_THRESHOLD) {
+    await notifyAllTabs({
+      type: "LINGOFLOW_TOAST",
+      toastType: "warning",
+      message: `⚠️ Hàng đợi offline gần đầy (${queue.length}/${MAX_QUEUE_SIZE} từ). Hãy kết nối mạng để đồng bộ sớm.`,
+    });
+  }
+
+  // Risk: createdAt mismatch — lưu thời điểm TẠO từ (khi offline), không phải thời điểm sync
+  const offlineCreatedAt = item.wordData?.createdAt || new Date().toISOString();
+
+  queue.push({
+    ...item,
+    timestamp: Date.now(),       // Thời điểm thêm vào queue
+    offlineCreatedAt,            // Thời điểm thực sự người dùng lưu từ
+    retryCount: 0,               // Risk: Infinite Retry — đếm số lần thử lại
+  });
   await chrome.storage.local.set({ [OFFLINE_QUEUE_KEY]: queue });
+  return true; // Thêm thành công
 }
 
 async function getQueueCount() {
@@ -359,45 +442,97 @@ async function processSyncQueue() {
   if (queue.length === 0) return;
 
   const failed = [];
+  let tokenExpired = false;
 
   for (const item of queue) {
+    // Risk: Infinite Retry Loop — bỏ mục nếu đã thử MAX_RETRY_COUNT lần
+    const currentRetry = item.retryCount || 0;
+    if (currentRetry >= MAX_RETRY_COUNT) {
+      console.warn(
+        `[LingoFlow] Bỏ từ "${item.word}" sau ${MAX_RETRY_COUNT} lần thất bại (lỗi cấu trúc dữ liệu).`,
+      );
+      continue; // Loại khỏi queue — không push vào failed
+    }
+
     try {
       const body = {
         word: item.wordData?.word || item.word,
-        ipa: item.wordData?.ipa || '',
+        ipa: item.wordData?.ipa || "",
         meaning: item.wordData?.meaning || `[${item.word}]`,
-        example: item.wordData?.example || '',
-        topic: 'Extension',
+        example: item.wordData?.example || "",
+        topic: "Extension",
+        // Risk: createdAt mismatch — gửi thời điểm người dùng THỰC SỰ lưu từ khi offline
+        createdAt: item.offlineCreatedAt || new Date(item.timestamp).toISOString(),
       };
 
       const res = await fetch(`${apiBase}/words`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(body),
       });
 
       if (!res.ok) {
-        if (res.status === 401) break; // Token hết hạn, dừng sync
-        failed.push(item);
+        if (res.status === 401) {
+          tokenExpired = true;
+          break; // Token hết hạn, dừng toàn bộ sync
+        }
+
+        // Nếu lỗi 400 (từ đã tồn tại hoặc dữ liệu không hợp lệ), tăng retryCount
+        if (res.status === 400) {
+          const errData = await res.json().catch(() => ({}));
+          // Nếu từ đã tồn tại → bỏ luôn (không retry)
+          if (errData?.message && /đã tồn tại/i.test(errData.message)) {
+            continue;
+          }
+          // Lỗi dữ liệu khác → tăng retry count
+          failed.push({ ...item, retryCount: currentRetry + 1 });
+          continue;
+        }
+
+        // Lỗi server (5xx) → giữ lại với retry count tăng
+        failed.push({ ...item, retryCount: currentRetry + 1 });
       }
+      // res.ok → sync thành công, không push vào failed
     } catch {
-      failed.push(item); // Vẫn offline
+      // Vẫn offline hoặc lỗi mạng → giữ lại với retry count tăng
+      failed.push({ ...item, retryCount: currentRetry + 1 });
       break;
     }
+  }
+
+  // Nếu token hết hạn → thông báo và giữ nguyên queue
+  if (tokenExpired) {
+    await notifyAllTabs({
+      type: "LINGOFLOW_TOAST",
+      toastType: "auth",
+      message: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để đồng bộ từ vựng offline.",
+    });
+    await chrome.storage.local.set({ [TOKEN_KEY]: null });
+    // Giữ nguyên queue — không xóa từ chờ sync
+    return;
   }
 
   await chrome.storage.local.set({ [OFFLINE_QUEUE_KEY]: failed });
   await updateBadge();
 
-  if (failed.length < queue.length) {
-    const synced = queue.length - failed.length;
+  const synced = queue.length - failed.length;
+  if (synced > 0) {
     await notifyAllTabs({
-      type: 'LINGOFLOW_TOAST',
-      toastType: 'success',
-      message: `✅ Đã đồng bộ ${synced} từ vựng chờ lên LingoFlow!`,
+      type: "LINGOFLOW_TOAST",
+      toastType: "success",
+      message: `✅ Đã đồng bộ ${synced} từ vựng offline lên LingoFlow!`,
+    });
+  }
+
+  // Cảnh báo nếu vẫn còn từ bị lỗi sau khi sync
+  if (failed.length > 0 && synced > 0) {
+    await notifyAllTabs({
+      type: "LINGOFLOW_TOAST",
+      toastType: "warning",
+      message: `⚠️ ${failed.length} từ không thể đồng bộ (đang thử lại lần sau).`,
     });
   }
 }
@@ -407,9 +542,9 @@ async function updateBadge() {
   const { count } = await getQueueCount();
   if (count > 0) {
     chrome.action.setBadgeText({ text: `+${count}` });
-    chrome.action.setBadgeBackgroundColor({ color: '#f97316' }); // orange
+    chrome.action.setBadgeBackgroundColor({ color: "#f97316" }); // orange
   } else {
-    chrome.action.setBadgeText({ text: '' });
+    chrome.action.setBadgeText({ text: "" });
   }
 }
 
@@ -445,7 +580,7 @@ async function notifyAllTabs(message) {
   try {
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
     for (const tab of tabs) {
-      if (tab.id && tab.url && !tab.url.startsWith('chrome://')) {
+      if (tab.id && tab.url && !tab.url.startsWith("chrome://")) {
         chrome.tabs.sendMessage(tab.id, message).catch(() => {
           // Tab không có content script (trang chrome://) → bỏ qua
         });

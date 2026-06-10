@@ -279,3 +279,23 @@
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.95), rgba(139, 92, 246, 0.95));
   border-color: rgba(167, 139, 250, 0.3);
 }
+
+#lingoflow-toast.lf-toast-warning {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.95), rgba(180, 83, 9, 0.95));
+  border-color: rgba(253, 211, 77, 0.35);
+}
+
+/* ─── Trạng thái nút "Đã tồn tại" ──────────────────────────── */
+.lf-btn-save.lf-btn-exists {
+  background: linear-gradient(135deg, #92400e, #78350f) !important;
+  border: 1px solid #f59e0b !important;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.3) !important;
+  cursor: not-allowed;
+}
+
+.lf-btn-save.lf-btn-close {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: none !important;
+  cursor: pointer;
+}

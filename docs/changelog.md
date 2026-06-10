@@ -26,7 +26,55 @@ Tất cả các thay đổi đáng chú ý đối với project LingoFlow đư�
 
 ---
 
+## [v0.7.0] - 2026-06-10
+
+Hoàn thiện **chức năng Ngoại tuyến (Offline)** và xử lý toàn diện các **Trường hợp Rủi ro Hệ thống** được liệt kê trong `offline_feature&risk_cases.md`.
+
+### [ADDED]
+
+- **Giới hạn dung lượng hàng đợi offline (Risk: Storage Exceeded)**:
+  - Giới hạn tối đa **50 từ** trong `chrome.storage.local` offline queue (`MAX_QUEUE_SIZE = 50`).
+  - Khi queue đạt **40 từ** (80% giới hạn), hiển thị Toast cảnh báo màu cam: `"⚠️ Hàng đợi offline gần đầy (40/50 từ). Hãy kết nối mạng để đồng bộ sớm."` — giúp người dùng biết sớm để tránh mất dữ liệu do Clear Cache.
+  - Khi queue **đã đầy (50 từ)**, từ mới sẽ không được lưu thêm và hiển thị lỗi ngay lập tức: `"⚠️ Hàng đợi offline đã đầy. Vui lòng kết nối mạng để đồng bộ trước khi lưu thêm."` — ngăn extension bị crash do tràn bộ nhớ.
+
+- **Chống vòng lặp thử lại vô hạn (Risk: Infinite Retry Loop / Self-DDoS)**:
+  - Mỗi mục trong offline queue giờ có trường `retryCount: 0` được khởi tạo khi thêm vào.
+  - Trong `processSyncQueue()`: nếu một từ đã thất bại **≥ 3 lần** (`MAX_RETRY_COUNT = 3`), từ đó sẽ bị loại bỏ khỏi hàng đợi và không bao giờ được gửi lại — tránh "bắn" request lỗi vô hạn lên server.
+  - Lỗi trùng lặp (HTTP 400 "đã tồn tại") vẫn bị bỏ ngay lần đầu mà không tăng retryCount (xử lý riêng, không phải lỗi cấu trúc dữ liệu).
+  - Lỗi server 5xx và lỗi dữ liệu 400 khác → tăng retryCount, thử lại tối đa 3 lần.
+
+- **Bảo toàn mốc thời gian học (Risk: createdAt Mismatch)**:
+  - Khi lưu từ offline, hệ thống ghi lại `offlineCreatedAt` = thời điểm người dùng **thực sự bấm lưu** (không phải thời điểm sync về sau).
+  - Khi đồng bộ lên server, Extension gửi kèm `createdAt: item.offlineCreatedAt` trong request body.
+  - Backend (`POST /api/words`) validate và chấp nhận trường `createdAt` nếu hợp lệ, đảm bảo thuật toán **Spaced Repetition (Leitner)** tính toán `nextReviewDate` chính xác từ thời điểm từ được tạo thực tế — không bị lệch do delay đồng bộ.
+
+- **Xử lý thông minh khi token hết hạn trong quá trình sync**:
+  - Khi `processSyncQueue()` gặp lỗi 401 (token hết hạn): thông báo người dùng đăng nhập lại, xóa token cũ, và **giữ nguyên toàn bộ offline queue** — không mất từ vựng chưa được đồng bộ.
+  - Thông báo sau khi sync có từ bị lỗi: `"⚠️ N từ không thể đồng bộ (đang thử lại lần sau)."` để người dùng biết tình trạng.
+
+### [CHANGED]
+
+- **`extension/background.js` — `addToOfflineQueue()`**: Trả về `true/false` (thay vì `void`) để `handleSaveWord()` phân biệt được kết quả — tránh gửi thông báo "đã lưu tạm thời" khi thực ra queue đã đầy.
+- **`extension/background.js` — `processSyncQueue()`**: Refactor toàn diện logic xử lý lỗi: phân tách lỗi trùng lặp / lỗi dữ liệu / lỗi mạng / token hết hạn thay vì xử lý chung.
+- **`backend/src/routes/words.ts` — `POST /api/words`**: Chấp nhận trường `createdAt` tùy chọn từ request body; validate tính hợp lệ và đảm bảo không chấp nhận ngày trong tương lai, sau đó sử dụng làm `createdAt` của document MongoDB.
+
+### [FIXED]
+
+- **UX thông báo "Từ đã tồn tại" (Extension Popup)**:
+  - **Trước**: Khi từ trùng lặp, nút lưu bị vô hiệu hóa vĩnh viễn với text "⚠️ Đã tồn tại" nhưng không có cách đóng popup — người dùng phải bấm nút X góc trên hoặc click ra ngoài.
+  - **Sau**: Nút chuyển sang màu amber `"⚠️ Đã tồn tại"` (class `lf-btn-exists`) → sau 2 giây tự động đổi thành nút `"✕ Đóng"` (class `lf-btn-close`) để người dùng đóng popup ngay, trải nghiệm tự nhiên hơn.
+  - Toast cảnh báo cũng hiển thị tên từ cụ thể: `"⚠️ Từ 'weather' đã tồn tại trong kho từ vựng của bạn."`.
+
+- **Phân tách lỗi HTTP 400 trong `handleSaveWord()`**:
+  - **Trước**: Tất cả lỗi 400 đều bị xử lý như "từ đã tồn tại" và trả về `reason: "duplicate"`.
+  - **Sau**: Phân tách thành 2 nhánh: lỗi trùng lặp → `reason: "duplicate"`, lỗi validation khác (thiếu trường bắt buộc...) → `reason: "validation_error"` với toast đỏ riêng.
+
+- **Thêm CSS class `lf-toast-warning`** vào `styles.css` — toast cảnh báo màu amber đậm (trước đây class này không tồn tại khiến toast cảnh báo hiển thị không có style).
+
+---
+
 ## [v0.6.0] - 2026-06-10
+
 
 Hoàn thành **Sprint 2**: Triển khai Chrome Extension **LingoFlow Helper** (US-003) — cho phép người học bôi đen từ tiếng Anh trên bất kỳ trang web nào và lưu vào kho từ vựng LingoFlow tức thì.
 
@@ -40,6 +88,7 @@ Hoàn thành **Sprint 2**: Triển khai Chrome Extension **LingoFlow Helper** (U
   - **Cấu hình Backend URL**: Trường nhập API URL trong popup — hỗ trợ cả local dev (`http://localhost:3000/api`) và production server.
   - **Toast thông báo**: Thông báo màu nổi góc phải dưới màn hình theo 4 loại: `success` (xanh), `error` (đỏ), `offline` (cam), `auth` (tím).
   - **Offline Sync Queue**: Khi mất mạng, từ vựng được đưa vào hàng đợi `chrome.storage.local`. Badge icon hiển thị số đếm cam "+N". Chrome Alarm 1 phút một lần kiểm tra mạng và tự đồng bộ thầm lặng.
+  - **Ngăn chặn lưu từ trùng lặp**: Khi người dùng cố gắng lưu một từ đã tồn tại, extension sẽ hiển thị Toast với nội dung "Từ đã tồn tại" (thay vì thông báo chung "Không thể lưu... Vui lòng thử lại"). Đồng thời chuyển nút "Lưu" trên popup tra nghĩa thành "⚠️ Đã tồn tại" và vô hiệu hóa nút. Tự động bỏ qua các từ trùng lặp trong hàng chờ offline để tránh làm nghẽn hàng đồng bộ.
   - Tạo file tài liệu kỹ thuật đầy đủ tại `docs/plans/extension.md`.
 
 - **API Backend mới `GET /api/words/lookup?word=xxx`**:
@@ -49,6 +98,9 @@ Hoàn thành **Sprint 2**: Triển khai Chrome Extension **LingoFlow Helper** (U
   - Timeout 5 giây — nếu quá hạn, extension fallback tự gọi Free Dictionary API và dịch tương tự qua client.
 
 ### [CHANGED]
+
+- **`POST /api/words` (Tạo từ mới)**:
+  - Bổ sung kiểm tra trùng lặp từ vựng (case-insensitive) của từng người dùng trước khi lưu vào MongoDB. Trả về mã lỗi 400 và thông báo lỗi nếu từ đã tồn tại.
 
 - **`backend/src/index.ts` — CORS**: Thêm `chrome-extension://` và `moz-extension://` vào danh sách allowed origins để Chrome Extension có thể gọi API thành công.
 
@@ -86,7 +138,6 @@ Hoàn thành **Sprint 1**: Tích hợp tính năng Kiểm tra Phát âm bằng G
 ---
 
 ## [v0.4.0] - 2026-06-07
-
 
 Bổ sung hệ thống Gamification với tính năng Bảng xếp hạng tuần (Weekly Leaderboard) giúp tăng cường độ tương tác và động lực học tập của người dùng.
 
