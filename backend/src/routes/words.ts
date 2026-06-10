@@ -4,10 +4,171 @@ import { authMiddleware, AuthRequest } from "../middleware/auth";
 
 const router = Router();
 
+// Vietnamese part of speech mapping
+const partOfSpeechVi: { [key: string]: string } = {
+  noun: "danh từ",
+  verb: "động từ",
+  adjective: "tính từ",
+  adverb: "trạng từ",
+  preposition: "giới từ",
+  pronoun: "đại từ",
+  conjunction: "liên từ",
+  interjection: "thán từ",
+  abbreviation: "viết tắt",
+  prefix: "tiền tố",
+  suffix: "hậu tố",
+};
+
+function getPartOfSpeechVi(pos: string): string {
+  const cleanPos = pos.toLowerCase().trim();
+  return partOfSpeechVi[cleanPos] || cleanPos;
+}
+
+// Google Translate helper function
+async function translateToVietnamese(text: string): Promise<string> {
+  if (!text || text.trim() === "") return "";
+  try {
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=vi&dt=t&q=${encodeURIComponent(text)}`;
+    const res = await fetch(url, {
+      headers: { "User-Agent": "LingoFlow/1.0" },
+      signal: AbortSignal.timeout(4000),
+    });
+    if (!res.ok) return text;
+    const data = (await res.json()) as any[];
+    if (data && data[0] && Array.isArray(data[0])) {
+      return data[0]
+        .map((x: any) => (x && x[0] ? x[0] : ""))
+        .join("")
+        .trim()
+        .normalize("NFC");
+    }
+    return text;
+  } catch (err) {
+    console.error("Translate to Vietnamese error:", err);
+    return text;
+  }
+}
+
+// Google Translate word details translator helper (for simple POS-grouped translations)
+async function getWordTranslation(word: string): Promise<string> {
+  if (!word || word.trim() === "") return "";
+  try {
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=vi&dt=t&dt=bd&dt=at&dt=rm&dt=ss&q=${encodeURIComponent(word)}`;
+    const res = await fetch(url, {
+      headers: { "User-Agent": "LingoFlow/1.0" },
+      signal: AbortSignal.timeout(4000),
+    });
+    if (!res.ok) return "";
+    const data = (await res.json()) as any[];
+    
+    // Parse main translation
+    let mainTrans = "";
+    if (data[0] && data[0][0] && data[0][0][0]) {
+      mainTrans = data[0][0][0].trim().normalize("NFC");
+    }
+    
+    // Parse detailed POS translations
+    let posMeanings: string[] = [];
+    if (data[1] && Array.isArray(data[1])) {
+      for (const posGroup of data[1]) {
+        const pos = posGroup[0]; // e.g. "noun"
+        const posVi = getPartOfSpeechVi(pos);
+        const transList = posGroup[1]; // e.g. ["khí hậu", "thời tiết"]
+        if (transList && transList.length > 0) {
+          const cleanTrans = transList
+            .slice(0, 3)
+            .map((t: string) => t.trim().normalize("NFC"))
+            .join(", ");
+          posMeanings.push(`(${posVi}) ${cleanTrans}`);
+        }
+      }
+    }
+    
+    if (posMeanings.length > 0) {
+      return posMeanings.join("; ");
+    }
+    return mainTrans;
+  } catch (err) {
+    console.error("Translate word error:", err);
+    return "";
+  }
+}
+
 // All routes require authentication
 router.use(authMiddleware);
 
-// GET /api/words — list words with optional filters
+// GET /api/words/lookup?word=xxx — lookup word definition (for Chrome Extension)
+// Tra nghĩa từ qua Free Dictionary API và dịch sang Tiếng Việt đơn giản theo từ loại
+router.get("/lookup", async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { word } = req.query;
+
+    if (!word || typeof word !== "string" || word.trim().length === 0) {
+      res.status(400).json({ success: false, message: "Thiếu tham số 'word'." });
+      return;
+    }
+
+    const cleanWord = word.trim().toLowerCase();
+
+    // 1. Dịch từ để lấy nghĩa tiếng Việt đơn giản & nhiều loại từ
+    let meaning = await getWordTranslation(cleanWord);
+
+    // 2. Gọi Free Dictionary API để lấy IPA và Example
+    let ipa = "";
+    let example = "";
+    let englishMeaning = "";
+    let partOfSpeech = "";
+
+    try {
+      const dictRes = await fetch(
+        `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(cleanWord)}`,
+        {
+          headers: { "User-Agent": "LingoFlow/1.0" },
+          signal: AbortSignal.timeout(4000),
+        }
+      );
+
+      if (dictRes.ok) {
+        const data = (await dictRes.json()) as any[];
+        const entry = data[0];
+        ipa = entry?.phonetic || entry?.phonetics?.find((p: any) => p.text)?.text || "";
+        const firstMeaning = entry?.meanings?.[0];
+        const firstDef = firstMeaning?.definitions?.[0];
+        partOfSpeech = firstMeaning?.partOfSpeech || "";
+        englishMeaning = firstDef?.definition || "";
+        example = firstDef?.example || "";
+      }
+    } catch (err) {
+      console.warn("Free Dictionary lookup timed out or failed, using translation only.");
+    }
+
+    // 3. Fallback: Nếu không lấy được nghĩa từ dịch từ, dùng định nghĩa tiếng Anh từ từ điển và dịch nó
+    if (!meaning && englishMeaning) {
+      const translatedMeaning = await translateToVietnamese(englishMeaning);
+      const posVi = getPartOfSpeechVi(partOfSpeech);
+      meaning = posVi ? `(${posVi}) ${translatedMeaning}` : translatedMeaning;
+    }
+
+    res.json({
+      success: meaning !== "",
+      word: cleanWord,
+      ipa,
+      meaning,
+      example,
+      notFound: meaning === "",
+    });
+  } catch (error: any) {
+    // Timeout hoặc mạng lỗi - trả về rỗng để extension tự xử lý
+    if (error?.name === "TimeoutError" || error?.name === "AbortError") {
+      res.json({ success: true, word: req.query.word, ipa: "", meaning: "", example: "" });
+      return;
+    }
+    console.error("Word lookup error:", error);
+    res.status(500).json({ success: false, message: "Lỗi server khi tra nghĩa." });
+  }
+});
+
+
 router.get("/", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { search, topic, learned, sort } = req.query;
@@ -57,7 +218,8 @@ router.get("/", async (req: AuthRequest, res: Response): Promise<void> => {
 // POST /api/words — create a new word
 router.post("/", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { word, ipa, meaning, example, topic, learned } = req.body;
+    // Risk: createdAt mismatch — chấp nhận createdAt từ Extension (offline sync)
+    const { word, ipa, meaning, example, topic, learned, createdAt } = req.body;
 
     if (!word || !meaning) {
       res
@@ -66,16 +228,45 @@ router.post("/", async (req: AuthRequest, res: Response): Promise<void> => {
       return;
     }
 
+    const cleanWord = word.trim();
+
+    // Kiểm tra xem từ đã tồn tại chưa (không phân biệt hoa thường)
+    const existingWord = await WordModel.findOne({
+      userId: req.userId,
+      word: { $regex: new RegExp(`^${cleanWord.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&")}$`, "i") },
+    });
+
+    if (existingWord) {
+      res.status(400).json({
+        success: false,
+        message: `Từ "${cleanWord}" đã tồn tại trong kho từ vựng của bạn.`,
+      });
+      return;
+    }
+
+    // Risk: createdAt mismatch — sử dụng thời điểm người dùng thực sự lưu (khi offline)
+    // Validate và parse createdAt nếu có (từ Extension offline sync)
+    let wordCreatedAt: Date | undefined;
+    if (createdAt) {
+      const parsedDate = new Date(createdAt);
+      // Chỉ dùng nếu là ngày hợp lệ và không trong tương lai quá 1 phút
+      if (!isNaN(parsedDate.getTime()) && parsedDate <= new Date(Date.now() + 60000)) {
+        wordCreatedAt = parsedDate;
+      }
+    }
+
     const newWord = await WordModel.create({
       userId: req.userId,
-      word: word.trim(),
+      word: cleanWord,
       ipa: ipa?.trim() || "",
       meaning: meaning.trim(),
       example: example?.trim() || "",
       topic: topic?.trim() || "Chung",
       learned: learned || false,
       box: 1,
-      nextReviewDate: new Date(),
+      nextReviewDate: wordCreatedAt || new Date(),
+      // Nếu có createdAt từ offline, dùng ngay; mongoose sẽ dùng Date.now() nếu undefined
+      ...(wordCreatedAt && { createdAt: wordCreatedAt }),
     });
 
     res.status(201).json({
