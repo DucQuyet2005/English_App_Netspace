@@ -94,7 +94,7 @@ LingoFlow là một ứng dụng web học tiếng Anh toàn diện, kết hợp
 
 - **Cài đặt tiện ích**: Extension Manifest v3 cho Chrome/Edge, cài đặt thủ công qua Developer Mode (Load Unpacked) hoặc Chrome Web Store (tương lai).
 - **Đăng nhập qua Popup**: Người dùng nhập email/password ngay trong popup extension. JWT token được lưu vào `chrome.storage.local` và gửi kèm mỗi request.
-- **Cấu hình API URL**: Trường nhập Backend API URL trong popup, hỗ trợ môi trường local dev và production.
+- **Cấu hình API URL**: Trường nhập Backend API URL trong popup, hỗ trợ môi trường local dev (mặc định: `http://localhost:3000/api`) và production.
 - **Floating Button**: Khi bôi đen từ tiếng Anh (1–5 từ), nút ⚡ LingoFlow nổi lên ngay cạnh vùng chọn.
 - **Lookup Popup (Tra nghĩa tức thì)**: Click floating button → popup hiển thị:
   - Từ vựng + phiên âm IPA
@@ -243,7 +243,7 @@ LingoFlow là một ứng dụng web học tiếng Anh toàn diện, kết hợp
 ## 6. Hạn Chế Hiện Tại
 
 - **Độ trễ khởi động của Server Free**: Do máy chủ Render (gói Free) tự động ngủ sau 15 phút không hoạt động, lượt gọi API đầu tiên sau thời gian này sẽ mất từ 50-60 giây để khởi động lại máy chủ (Cold Start).
-- **Nghĩa từ Extension bằng tiếng Anh**: Endpoint `/api/words/lookup` trả về định nghĩa tiếng Anh từ Free Dictionary API, không phải tiếng Việt. Người dùng cần chỉnh sửa nghĩa trong app sau khi lưu.
+- **Nghĩa từ Extension tự động dịch**: Endpoint `/api/words/lookup` trả về nghĩa tiếng Việt nhờ tích hợp Google Translate (kèm Việt hóa từ loại).
 - **Extension chỉ hỗ trợ ký tự Latin**: Chỉ nhận diện từ a-z, space, gạch ngang. Không hỗ trợ tiếng Hoa, Nhật, Hàn.
 - **Chưa có âm thanh phát âm trực tiếp trong Extension**: Extension chưa có nút loa phát âm trong lookup popup.
 - **Chưa hoạt động ngoại tuyến toàn phần (Offline mode)**: Ứng dụng web LingoFlow yêu cầu Internet để tải dữ liệu. Extension có offline queue nhưng không thể đọc từ vựng khi offline.
@@ -252,7 +252,6 @@ LingoFlow là một ứng dụng web học tiếng Anh toàn diện, kết hợp
 
 ## 7. Tiềm Năng Mở Rộng (Future)
 
-- **Nghĩa tiếng Việt tự động cho Extension**: Tích hợp Google Translate API hoặc Gemini để dịch nghĩa sang tiếng Việt trong popup tra nghĩa của Extension.
 - **Hỗ trợ Offline-first**: Lưu trữ tạm dữ liệu học tập vào IndexedDB khi mất kết nối mạng và tự động đồng bộ lên MongoDB khi có Internet trở lại.
 - **Tạo gợi ý học tập bằng AI**: Sử dụng mô hình ngôn ngữ (như Gemini API) để tạo câu ví dụ tự động phù hợp với ngữ cảnh học tập của người dùng.
 - **Học tập nhóm (Social Sharing)**: Cho phép người dùng chia sẻ bộ từ vựng hoặc thi đua bảng điểm quiz với nhau.

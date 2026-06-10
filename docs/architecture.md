@@ -253,6 +253,7 @@ Hệ thống được cấu hình tối ưu để chạy trên các môi trườ
 
 ### 8.2 Backend (Render)
 * **Root Directory**: `backend` (để Render tập trung chạy đúng mã nguồn Node.js).
+* **Cổng chạy Local (Local Port)**: Backend chạy mặc định tại cổng `3000` (`http://localhost:3000`) ở môi trường phát triển cục bộ.
 * **Build Command**: `npm install && npm run build` (Biên dịch tệp `.ts` sang thư mục chạy `dist/`).
 * **Start Command**: `node dist/index.js`.
 * **Cấu hình CORS**: Tệp `backend/src/index.ts` thiết lập CORS động:

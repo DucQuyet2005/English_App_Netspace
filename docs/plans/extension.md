@@ -37,7 +37,7 @@ extension/
 ## Cấu hình API URL
 
 Lần đầu sử dụng, mở popup extension và nhập **Backend API URL** của LingoFlow:
-- **Local dev**: `http://localhost:5000/api`
+- **Local dev**: `http://localhost:3000/api`
 - **Production**: `https://your-backend.onrender.com/api`
 
 Nhấn nút **"Lưu"** để lưu cấu hình vào `chrome.storage.local`.
@@ -178,15 +178,13 @@ Content-Type: application/json
 ## Giới hạn hiện tại
 
 - Extension chỉ nhận diện ký tự Latin (a-z, space, dấu gạch ngang). Không hỗ trợ các ngôn ngữ không dùng bảng chữ cái Latin.
-- Mỗi lần lưu chỉ lưu 1 từ/cụm từ (tối đa 5 từ).
-- Nghĩa từ là định nghĩa tiếng Anh từ Free Dictionary API, không phải nghĩa tiếng Việt. Người dùng có thể chỉnh sửa nghĩa trong app sau khi lưu.
+- Nghĩa từ tự động dịch sang tiếng Việt: Endpoint `/api/words/lookup` và hàm fallback của extension tích hợp Google Translate để trả về nghĩa tiếng Việt và Việt hóa từ loại (ví dụ: `(tính từ) ...`).
 - Popup tra nghĩa chỉ hiển thị định nghĩa đầu tiên (part of speech thứ nhất).
 
 ---
 
 ## Hướng mở rộng (v1.1+)
 
-- **Dịch sang tiếng Việt**: Tích hợp Google Translate API để trả nghĩa tiếng Việt thay vì tiếng Anh.
 - **Popup AI nghĩa ngữ cảnh**: Dùng Gemini API để giải thích từ trong ngữ cảnh câu đang đọc.
 - **Lịch sử bôi đen**: Hiển thị 10 từ vừa lưu trong popup extension.
 - **Firefox support**: Extension đã sẵn sàng cho WebExtension API (thay `chrome.*` bằng `browser.*`).

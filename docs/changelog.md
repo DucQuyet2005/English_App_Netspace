@@ -37,15 +37,16 @@ Hoàn thành **Sprint 2**: Triển khai Chrome Extension **LingoFlow Helper** (U
   - **Lookup Popup**: Popup tra nghĩa ngay tại chỗ — hiển thị từ, IPA, định nghĩa và câu ví dụ (lấy từ `/api/words/lookup`). Có nút "💾 Lưu vào LingoFlow".
   - **Context Menu (Chuột phải)**: Fallback khi floating button bị chặn bởi CSP — menu "💾 Lưu '{từ}' vào LingoFlow" luôn hoạt động ổn định.
   - **Popup UI đăng nhập**: Giao diện `popup.html` cho phép nhập email/password để đăng nhập vào tài khoản LingoFlow. Lưu JWT token vào `chrome.storage.local`. Hiển thị tên người dùng khi đã đăng nhập.
-  - **Cấu hình Backend URL**: Trường nhập API URL trong popup — hỗ trợ cả local dev (`http://localhost:5000/api`) và production server.
+  - **Cấu hình Backend URL**: Trường nhập API URL trong popup — hỗ trợ cả local dev (`http://localhost:3000/api`) và production server.
   - **Toast thông báo**: Thông báo màu nổi góc phải dưới màn hình theo 4 loại: `success` (xanh), `error` (đỏ), `offline` (cam), `auth` (tím).
   - **Offline Sync Queue**: Khi mất mạng, từ vựng được đưa vào hàng đợi `chrome.storage.local`. Badge icon hiển thị số đếm cam "+N". Chrome Alarm 1 phút một lần kiểm tra mạng và tự đồng bộ thầm lặng.
   - Tạo file tài liệu kỹ thuật đầy đủ tại `docs/plans/extension.md`.
 
 - **API Backend mới `GET /api/words/lookup?word=xxx`**:
-  - Endpoint tra nghĩa phía server (proxy): gọi Free Dictionary API từ backend, tránh vấn đề CORS khi extension gọi trực tiếp.
-  - Trả về: `{ word, ipa, meaning, example }`. Nếu từ không tìm thấy, trả về cấu trúc rỗng với `notFound: true` để extension vẫn lưu được từ.
-  - Timeout 5 giây — nếu quá hạn, extension fallback sang gọi Free Dictionary API trực tiếp.
+  - Endpoint tra nghĩa phía server (proxy): Kết hợp Free Dictionary API (lấy IPA và câu ví dụ) với Google Translate để dịch nghĩa tiếng Việt ngắn gọn, đơn giản của từ (thay vì dịch định nghĩa tiếng Anh dài dòng).
+  - Định dạng nghĩa trả về: Phân loại theo các từ loại của từ (ví dụ: `(danh từ) thời tiết, khí hậu; (động từ) để ngoài mưa gió`).
+  - Hỗ trợ dịch trực tiếp: Nếu từ không tìm thấy trong từ điển, server vẫn dịch trực tiếp từ/cụm từ đó sang tiếng Việt làm nghĩa giúp người dùng dễ dàng lưu từ.
+  - Timeout 5 giây — nếu quá hạn, extension fallback tự gọi Free Dictionary API và dịch tương tự qua client.
 
 ### [CHANGED]
 

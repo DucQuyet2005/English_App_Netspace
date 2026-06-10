@@ -4,11 +4,101 @@ import { authMiddleware, AuthRequest } from "../middleware/auth";
 
 const router = Router();
 
+// Vietnamese part of speech mapping
+const partOfSpeechVi: { [key: string]: string } = {
+  noun: "danh từ",
+  verb: "động từ",
+  adjective: "tính từ",
+  adverb: "trạng từ",
+  preposition: "giới từ",
+  pronoun: "đại từ",
+  conjunction: "liên từ",
+  interjection: "thán từ",
+  abbreviation: "viết tắt",
+  prefix: "tiền tố",
+  suffix: "hậu tố",
+};
+
+function getPartOfSpeechVi(pos: string): string {
+  const cleanPos = pos.toLowerCase().trim();
+  return partOfSpeechVi[cleanPos] || cleanPos;
+}
+
+// Google Translate helper function
+async function translateToVietnamese(text: string): Promise<string> {
+  if (!text || text.trim() === "") return "";
+  try {
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=vi&dt=t&q=${encodeURIComponent(text)}`;
+    const res = await fetch(url, {
+      headers: { "User-Agent": "LingoFlow/1.0" },
+      signal: AbortSignal.timeout(4000),
+    });
+    if (!res.ok) return text;
+    const data = (await res.json()) as any[];
+    if (data && data[0] && Array.isArray(data[0])) {
+      return data[0]
+        .map((x: any) => (x && x[0] ? x[0] : ""))
+        .join("")
+        .trim()
+        .normalize("NFC");
+    }
+    return text;
+  } catch (err) {
+    console.error("Translate to Vietnamese error:", err);
+    return text;
+  }
+}
+
+// Google Translate word details translator helper (for simple POS-grouped translations)
+async function getWordTranslation(word: string): Promise<string> {
+  if (!word || word.trim() === "") return "";
+  try {
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=vi&dt=t&dt=bd&dt=at&dt=rm&dt=ss&q=${encodeURIComponent(word)}`;
+    const res = await fetch(url, {
+      headers: { "User-Agent": "LingoFlow/1.0" },
+      signal: AbortSignal.timeout(4000),
+    });
+    if (!res.ok) return "";
+    const data = (await res.json()) as any[];
+    
+    // Parse main translation
+    let mainTrans = "";
+    if (data[0] && data[0][0] && data[0][0][0]) {
+      mainTrans = data[0][0][0].trim().normalize("NFC");
+    }
+    
+    // Parse detailed POS translations
+    let posMeanings: string[] = [];
+    if (data[1] && Array.isArray(data[1])) {
+      for (const posGroup of data[1]) {
+        const pos = posGroup[0]; // e.g. "noun"
+        const posVi = getPartOfSpeechVi(pos);
+        const transList = posGroup[1]; // e.g. ["khí hậu", "thời tiết"]
+        if (transList && transList.length > 0) {
+          const cleanTrans = transList
+            .slice(0, 3)
+            .map((t: string) => t.trim().normalize("NFC"))
+            .join(", ");
+          posMeanings.push(`(${posVi}) ${cleanTrans}`);
+        }
+      }
+    }
+    
+    if (posMeanings.length > 0) {
+      return posMeanings.join("; ");
+    }
+    return mainTrans;
+  } catch (err) {
+    console.error("Translate word error:", err);
+    return "";
+  }
+}
+
 // All routes require authentication
 router.use(authMiddleware);
 
 // GET /api/words/lookup?word=xxx — lookup word definition (for Chrome Extension)
-// Tra nghĩa từ qua Free Dictionary API, trả về ipa + meaning + example
+// Tra nghĩa từ qua Free Dictionary API và dịch sang Tiếng Việt đơn giản theo từ loại
 router.get("/lookup", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { word } = req.query;
@@ -20,51 +110,52 @@ router.get("/lookup", async (req: AuthRequest, res: Response): Promise<void> => 
 
     const cleanWord = word.trim().toLowerCase();
 
-    // Gọi Free Dictionary API
-    const dictRes = await fetch(
-      `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(cleanWord)}`,
-      {
-        headers: { "User-Agent": "LingoFlow/1.0" },
-        signal: AbortSignal.timeout(5000),
-      }
-    );
+    // 1. Dịch từ để lấy nghĩa tiếng Việt đơn giản & nhiều loại từ
+    let meaning = await getWordTranslation(cleanWord);
 
-    if (!dictRes.ok) {
-      // Từ không tìm thấy - trả về cấu trúc rỗng để extension vẫn có thể lưu
-      res.json({
-        success: true,
-        word: cleanWord,
-        ipa: "",
-        meaning: "",
-        example: "",
-        notFound: true,
-      });
-      return;
+    // 2. Gọi Free Dictionary API để lấy IPA và Example
+    let ipa = "";
+    let example = "";
+    let englishMeaning = "";
+    let partOfSpeech = "";
+
+    try {
+      const dictRes = await fetch(
+        `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(cleanWord)}`,
+        {
+          headers: { "User-Agent": "LingoFlow/1.0" },
+          signal: AbortSignal.timeout(4000),
+        }
+      );
+
+      if (dictRes.ok) {
+        const data = (await dictRes.json()) as any[];
+        const entry = data[0];
+        ipa = entry?.phonetic || entry?.phonetics?.find((p: any) => p.text)?.text || "";
+        const firstMeaning = entry?.meanings?.[0];
+        const firstDef = firstMeaning?.definitions?.[0];
+        partOfSpeech = firstMeaning?.partOfSpeech || "";
+        englishMeaning = firstDef?.definition || "";
+        example = firstDef?.example || "";
+      }
+    } catch (err) {
+      console.warn("Free Dictionary lookup timed out or failed, using translation only.");
     }
 
-    const data = (await dictRes.json()) as any[];
-    const entry = data[0];
-
-    // Lấy phonetic IPA
-    const ipa =
-      entry?.phonetic ||
-      entry?.phonetics?.find((p: any) => p.text)?.text ||
-      "";
-
-    // Lấy định nghĩa đầu tiên
-    const firstMeaning = entry?.meanings?.[0];
-    const firstDef = firstMeaning?.definitions?.[0];
-    const partOfSpeech = firstMeaning?.partOfSpeech || "";
-
-    const meaning = firstDef?.definition || "";
-    const example = firstDef?.example || "";
+    // 3. Fallback: Nếu không lấy được nghĩa từ dịch từ, dùng định nghĩa tiếng Anh từ từ điển và dịch nó
+    if (!meaning && englishMeaning) {
+      const translatedMeaning = await translateToVietnamese(englishMeaning);
+      const posVi = getPartOfSpeechVi(partOfSpeech);
+      meaning = posVi ? `(${posVi}) ${translatedMeaning}` : translatedMeaning;
+    }
 
     res.json({
-      success: true,
-      word: entry?.word || cleanWord,
+      success: meaning !== "",
+      word: cleanWord,
       ipa,
-      meaning: meaning ? `(${partOfSpeech}) ${meaning}` : "",
+      meaning,
       example,
+      notFound: meaning === "",
     });
   } catch (error: any) {
     // Timeout hoặc mạng lỗi - trả về rỗng để extension tự xử lý

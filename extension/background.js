@@ -98,28 +98,143 @@ async function lookupWord(word) {
   }
 }
 
+// Vietnamese part of speech mapping for extension fallback
+const partOfSpeechVi = {
+  noun: "danh từ",
+  verb: "động từ",
+  adjective: "tính từ",
+  adverb: "trạng từ",
+  preposition: "giới từ",
+  pronoun: "đại từ",
+  conjunction: "liên từ",
+  interjection: "thán từ",
+  abbreviation: "viết tắt",
+  prefix: "tiền tố",
+  suffix: "hậu tố",
+};
+
+function getPartOfSpeechVi(pos) {
+  if (!pos) return "";
+  const cleanPos = pos.toLowerCase().trim();
+  return partOfSpeechVi[cleanPos] || cleanPos;
+}
+
+// Google Translate helper function for extension fallback
+async function translateToVietnamese(text) {
+  if (!text || text.trim() === "") return "";
+  try {
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=vi&dt=t&q=${encodeURIComponent(text)}`;
+    const res = await fetch(url);
+    if (!res.ok) return text;
+    const data = await res.json();
+    if (data && data[0] && Array.isArray(data[0])) {
+      return data[0]
+        .map((x) => (x && x[0] ? x[0] : ""))
+        .join("")
+        .trim()
+        .normalize("NFC");
+    }
+    return text;
+  } catch (err) {
+    console.error("Translate to Vietnamese error:", err);
+    return text;
+  }
+}
+
+// Google Translate word details translator helper (for simple POS-grouped translations)
+async function getWordTranslation(word) {
+  if (!word || word.trim() === "") return "";
+  try {
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=vi&dt=t&dt=bd&dt=at&dt=rm&dt=ss&q=${encodeURIComponent(word)}`;
+    const res = await fetch(url);
+    if (!res.ok) return "";
+    const data = await res.json();
+    
+    // Parse main translation
+    let mainTrans = "";
+    if (data[0] && data[0][0] && data[0][0][0]) {
+      mainTrans = data[0][0][0].trim().normalize("NFC");
+    }
+    
+    // Parse detailed POS translations
+    let posMeanings = [];
+    if (data[1] && Array.isArray(data[1])) {
+      for (const posGroup of data[1]) {
+        const pos = posGroup[0]; // e.g. "noun"
+        const posVi = getPartOfSpeechVi(pos);
+        const transList = posGroup[1]; // e.g. ["khí hậu", "thời tiết"]
+        if (transList && transList.length > 0) {
+          const cleanTrans = transList
+            .slice(0, 3)
+            .map((t) => t.trim().normalize("NFC"))
+            .join(", ");
+          posMeanings.push(`(${posVi}) ${cleanTrans}`);
+        }
+      }
+    }
+    
+    if (posMeanings.length > 0) {
+      return posMeanings.join("; ");
+    }
+    return mainTrans;
+  } catch (err) {
+    console.error("Translate word error:", err);
+    return "";
+  }
+}
+
 async function lookupWordFallback(word) {
   try {
-    const res = await fetch(
-      `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`
-    );
-    if (!res.ok) return { success: false, word, meaning: '', ipa: '', example: '' };
+    // 1. Thử dịch từ để lấy nghĩa tiếng Việt đơn giản & nhiều loại từ
+    let meaning = await getWordTranslation(word);
 
-    const data = await res.json();
-    const entry = data[0];
-    const phonetic = entry?.phonetics?.find((p) => p.text)?.text || '';
-    const firstDef =
-      entry?.meanings?.[0]?.definitions?.[0];
+    // 2. Gọi Free Dictionary API để lấy IPA và Example
+    let ipa = "";
+    let example = "";
+    let englishMeaning = "";
+    let partOfSpeech = "";
+
+    try {
+      const res = await fetch(
+        `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        const entry = data[0];
+        ipa = entry?.phonetics?.find((p) => p.text)?.text || '';
+        const firstMeaning = entry?.meanings?.[0];
+        const firstDef = firstMeaning?.definitions?.[0];
+        partOfSpeech = firstMeaning?.partOfSpeech || "";
+        englishMeaning = firstDef?.definition || "";
+        example = firstDef?.example || "";
+      }
+    } catch {
+      // Bỏ qua lỗi gọi dictionary để vẫn dùng nghĩa dịch
+    }
+
+    // 3. Fallback: Nếu không lấy được nghĩa dịch từ, dùng định nghĩa tiếng Anh dịch ra
+    if (!meaning && englishMeaning) {
+      const translatedMeaning = await translateToVietnamese(englishMeaning);
+      const posVi = getPartOfSpeechVi(partOfSpeech);
+      meaning = posVi ? `(${posVi}) ${translatedMeaning}` : translatedMeaning;
+    }
 
     return {
-      success: true,
-      word: entry?.word || word,
-      ipa: phonetic,
-      meaning: firstDef?.definition || '',
-      example: firstDef?.example || '',
+      success: meaning !== "",
+      word: word,
+      ipa: ipa,
+      meaning: meaning,
+      example: example,
+      notFound: meaning === "",
     };
-  } catch {
-    return { success: false, word, meaning: '', ipa: '', example: '' };
+  } catch (err) {
+    // Thử dịch trực tiếp từ này nếu gặp lỗi kết nối
+    try {
+      let meaning = await getWordTranslation(word);
+      return { success: meaning !== "", word, meaning, ipa: "", example: "", notFound: meaning === "" };
+    } catch {
+      return { success: false, word, meaning: '', ipa: '', example: '' };
+    }
   }
 }
 
