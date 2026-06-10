@@ -5,8 +5,7 @@
 const API_BASE_KEY = "lingoflow_api_base";
 const TOKEN_KEY = "lingoflow_token";
 const OFFLINE_QUEUE_KEY = "lingoflow_offline_queue";
-const DEFAULT_API_BASE =
-  "https://english-app-netspace-backend.onrender.com/api";
+const DEFAULT_API_BASE = "https://english-app-netspace-9g5f.onrender.com/api";
 
 // ─── Risk Management Constants ────────────────────────────────
 const MAX_QUEUE_SIZE = 50; // Risk: Storage Exceeded — tối đa 50 từ trong hàng đợi
