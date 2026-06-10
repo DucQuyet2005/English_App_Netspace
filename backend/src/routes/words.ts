@@ -60,13 +60,13 @@ async function getWordTranslation(word: string): Promise<string> {
     });
     if (!res.ok) return "";
     const data = (await res.json()) as any[];
-    
+
     // Parse main translation
     let mainTrans = "";
     if (data[0] && data[0][0] && data[0][0][0]) {
       mainTrans = data[0][0][0].trim().normalize("NFC");
     }
-    
+
     // Parse detailed POS translations
     let posMeanings: string[] = [];
     if (data[1] && Array.isArray(data[1])) {
@@ -83,7 +83,7 @@ async function getWordTranslation(word: string): Promise<string> {
         }
       }
     }
-    
+
     if (posMeanings.length > 0) {
       return posMeanings.join("; ");
     }

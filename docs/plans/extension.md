@@ -74,7 +74,7 @@ Nhấn nút **"Lưu"** để lưu cấu hình vào `chrome.storage.local`.
 ```
 1. Bôi đen từ → Click lưu → Mạng bị ngắt
 2. background.js phát hiện mất kết nối
-3. Kiểm tra giới hạn: queue < 50 từ mới thêm
+3. Kiểm tra giới hạn: queue < 20 từ mới thêm
 4. Lưu offlineCreatedAt = thời điểm hiện tại (không phải thời điểm sync)
 5. Từ được đưa vào Offline Sync Queue với retryCount = 0
 6. Badge icon hiển thị "+N" màu cam
@@ -150,9 +150,9 @@ Content-Type: application/json
 |-----------|----------|
 | Token hết hạn (online) | Toast tím: "Vui lòng đăng nhập lại qua icon Extension" |
 | Token hết hạn (trong lúc sync) | Giữ nguyên offline queue, thông báo đăng nhập lại |
-| Mất mạng khi lưu | Đưa vào offline queue (nếu < 50 từ), badge cam "+N" |
-| **Offline queue đầy (50 từ)** | Không lưu thêm, toast lỗi yêu cầu đồng bộ trước |
-| **Queue gần đầy (40 từ)** | Toast cảnh báo cam dậng sớm |
+| Mất mạng khi lưu | Đưa vào offline queue (nếu < 20 từ), badge cam "+N" |
+| **Offline queue đầy (20 từ)** | Không lưu thêm, toast lỗi yêu cầu đồng bộ trước |
+| **Queue gần đầy (16 từ)** | Toast cảnh báo cam dậng sớm |
 | **Lỗi sync liên tục (≥3 lần)** | Từ bị loại khỏi queue, không retry vô hạn |
 | Từ đã tồn tại (400) | Toast: "Từ đã tồn tại", nút ⊠ Đã tồn tại (vô hiệu hóa) |
 | CSP cực đoan chặn inject | Floating button không hiển thị nhưng Context Menu vẫn hoạt động |
