@@ -8,9 +8,9 @@ const OFFLINE_QUEUE_KEY = "lingoflow_offline_queue";
 const DEFAULT_API_BASE = "https://english-app-netspace-9g5f.onrender.com/api";
 
 // ─── Risk Management Constants ────────────────────────────────
-const MAX_QUEUE_SIZE = 50; // Risk: Storage Exceeded — tối đa 50 từ trong hàng đợi
+const MAX_QUEUE_SIZE = 20; // Risk: Storage Exceeded — tối đa 20 từ trong hàng đợi
 const MAX_RETRY_COUNT = 3; // Risk: Infinite Retry Loop — bỏ mục sau 3 lần thất bại
-const QUEUE_WARN_THRESHOLD = 40; // Cảnh báo khi queue gần đầy (80% của 50)
+const QUEUE_WARN_THRESHOLD = 16; // Cảnh báo khi queue gần đầy (80% của 20)
 
 // ─── Khởi tạo Context Menu ───────────────────────────────────
 chrome.runtime.onInstalled.addListener(() => {

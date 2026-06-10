@@ -26,6 +26,27 @@ Tất cả các thay đổi đáng chú ý đối với project LingoFlow đư�
 
 ---
 
+## [v0.8.0] - 2026-06-10
+
+Cải tiến **chức năng Ngoại tuyến (Offline)**: Backend tự động dịch thuật & điền đầy đủ thông tin từ vựng khi đồng bộ, giảm giới hạn hàng đợi xuống **20 từ** để tối ưu hiệu năng và trải nghiệm người dùng.
+
+### [ADDED]
+
+- **Tự động điền chi tiết từ vựng trên Backend khi đồng bộ (Auto-fill on Sync)**:
+  - Khi có mạng lại, `background.js` đồng bộ các từ trong hàng đợi offline (với nghĩa tạm thời dạng `[từ]` hoặc rỗng) lên Backend.
+  - **Backend Server** tự động gọi API dịch thuật (Google Translate & Free Dictionary API) để điền nốt **Nghĩa tiếng Việt, phiên âm IPA, và Câu ví dụ** trước khi lưu chính thức vào cơ sở dữ liệu.
+  - Nếu từ có sẵn nghĩa do người dùng điền tay, Backend chỉ bổ sung phần còn thiếu (IPA, ví dụ), không ghi đè nghĩa gốc.
+  - Giải thuật phân tích Dictionary API được cải tiến: quét toàn bộ từ loại và định nghĩa để tìm phiên âm IPA và câu ví dụ đầu tiên có sẵn, thay vì chỉ đọc định nghĩa đầu tiên và bỏ qua nếu trống.
+  - Cơ chế fallback: nếu API Free Dictionary không có phiên âm hoặc ví dụ, hệ thống vẫn lưu từ thành công với phần dữ liệu có được — không block luồng sync.
+
+### [CHANGED]
+
+- **`extension/background.js` — `MAX_QUEUE_SIZE`**: Giảm từ **50 xuống 20 từ** để tối ưu hiệu năng đồng bộ và giảm tải cho Backend khi sync hàng loạt. Giới hạn mới phù hợp với tốc độ đồng bộ tuần tự và khả năng gọi API dịch thuật của server.
+- **`extension/background.js` — `QUEUE_WARN_THRESHOLD`**: Cảnh báo sớm tại **16 từ (80% của 20)** — Toast cảnh báo hiển thị: `"⚠️ Hàng đợi offline gần đầy (16/20 từ). Hãy kết nối mạng để đồng bộ sớm."`.
+- **`backend/src/routes/words.ts` — `POST /api/words`**: Loại bỏ ràng buộc bắt buộc gửi trường `meaning` từ client; tự động phát hiện placeholder `[word]` hoặc thiếu IPA/Ví dụ để điền nốt (auto-fill) các thông tin này bằng các API dịch thuật trước khi lưu vào document MongoDB.
+
+---
+
 ## [v0.7.0] - 2026-06-10
 
 Hoàn thiện **chức năng Ngoại tuyến (Offline)** và xử lý toàn diện các **Trường hợp Rủi ro Hệ thống** được liệt kê trong `offline_feature&risk_cases.md`.
