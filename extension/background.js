@@ -9,8 +9,8 @@ const DEFAULT_API_BASE =
   "https://english-app-netspace-backend.onrender.com/api";
 
 // ─── Risk Management Constants ────────────────────────────────
-const MAX_QUEUE_SIZE = 50;       // Risk: Storage Exceeded — tối đa 50 từ trong hàng đợi
-const MAX_RETRY_COUNT = 3;       // Risk: Infinite Retry Loop — bỏ mục sau 3 lần thất bại
+const MAX_QUEUE_SIZE = 50; // Risk: Storage Exceeded — tối đa 50 từ trong hàng đợi
+const MAX_RETRY_COUNT = 3; // Risk: Infinite Retry Loop — bỏ mục sau 3 lần thất bại
 const QUEUE_WARN_THRESHOLD = 40; // Cảnh báo khi queue gần đầy (80% của 50)
 
 // ─── Khởi tạo Context Menu ───────────────────────────────────
@@ -319,39 +319,48 @@ async function handleSaveWord(word, wordData = null) {
       return { success: false, reason: "token_expired" };
     }
 
-    if (res.status === 400) {
-      let errData = {};
-      try { errData = await res.json(); } catch {}
-
-      const isDuplicate = errData?.message && /đã tồn tại/i.test(errData.message);
-
-      if (isDuplicate) {
-        // Từ đã tồn tại — hiển thị toast cảnh báo rõ ràng
-        await notifyAllTabs({
-          type: "LINGOFLOW_TOAST",
-          toastType: "warning",
-          message: `⚠️ Từ "${word}" đã tồn tại trong kho từ vựng của bạn.`,
-        });
-        return { success: false, reason: "duplicate" };
-      } else {
-        // Lỗi validation khác (thiếu từ, thiếu nghĩa...)
-        await notifyAllTabs({
-          type: "LINGOFLOW_TOAST",
-          toastType: "error",
-          message: errData?.message || `Dữ liệu không hợp lệ. Vui lòng thử lại.`,
-        });
-        return { success: false, reason: "validation_error" };
+    let errData = {};
+    if (!res.ok) {
+      try {
+        errData = await res.json();
+      } catch {
+        try {
+          const text = await res.text();
+          if (text) {
+            errData = { message: text.trim() };
+          }
+        } catch {}
       }
     }
 
+    const errMsg =
+      typeof errData?.message === "string" && errData.message.trim()
+        ? errData.message.trim()
+        : typeof errData === "string" && errData.trim()
+          ? errData.trim()
+          : `Không thể lưu từ "${word}". Vui lòng thử lại.`;
+    const isDuplicate =
+      errMsg && /đã tồn tại|already exists|exists/i.test(errMsg);
+
+    if (isDuplicate) {
+      await notifyAllTabs({
+        type: "LINGOFLOW_TOAST",
+        toastType: "warning",
+        message: `⚠️ Từ "${word}" đã tồn tại trong kho từ vựng của bạn.`,
+      });
+      return { success: false, reason: "duplicate" };
+    }
+
     if (!res.ok) {
-      let errMsg = `Không thể lưu từ "${word}". Vui lòng thử lại.`;
-      try {
-        const errData = await res.json();
-        if (errData && errData.message) {
-          errMsg = errData.message;
-        }
-      } catch {}
+      if (res.status === 400) {
+        await notifyAllTabs({
+          type: "LINGOFLOW_TOAST",
+          toastType: "error",
+          message: errMsg || `Dữ liệu không hợp lệ. Vui lòng thử lại.`,
+        });
+        return { success: false, reason: "validation_error" };
+      }
+
       throw new Error(errMsg);
     }
 
@@ -419,9 +428,9 @@ async function addToOfflineQueue(item) {
 
   queue.push({
     ...item,
-    timestamp: Date.now(),       // Thời điểm thêm vào queue
-    offlineCreatedAt,            // Thời điểm thực sự người dùng lưu từ
-    retryCount: 0,               // Risk: Infinite Retry — đếm số lần thử lại
+    timestamp: Date.now(), // Thời điểm thêm vào queue
+    offlineCreatedAt, // Thời điểm thực sự người dùng lưu từ
+    retryCount: 0, // Risk: Infinite Retry — đếm số lần thử lại
   });
   await chrome.storage.local.set({ [OFFLINE_QUEUE_KEY]: queue });
   return true; // Thêm thành công
@@ -462,7 +471,8 @@ async function processSyncQueue() {
         example: item.wordData?.example || "",
         topic: "Extension",
         // Risk: createdAt mismatch — gửi thời điểm người dùng THỰC SỰ lưu từ khi offline
-        createdAt: item.offlineCreatedAt || new Date(item.timestamp).toISOString(),
+        createdAt:
+          item.offlineCreatedAt || new Date(item.timestamp).toISOString(),
       };
 
       const res = await fetch(`${apiBase}/words`, {
@@ -508,7 +518,8 @@ async function processSyncQueue() {
     await notifyAllTabs({
       type: "LINGOFLOW_TOAST",
       toastType: "auth",
-      message: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để đồng bộ từ vựng offline.",
+      message:
+        "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để đồng bộ từ vựng offline.",
     });
     await chrome.storage.local.set({ [TOKEN_KEY]: null });
     // Giữ nguyên queue — không xóa từ chờ sync
