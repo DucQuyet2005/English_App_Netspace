@@ -39,7 +39,10 @@ app.use(
           (normalizedOrigin.startsWith("http://localhost") ||
             normalizedOrigin.startsWith("http://127.0.0.1"))) ||
         (normalizedOrigin.includes("english-app-netspace") &&
-          normalizedOrigin.endsWith("vercel.app"));
+          normalizedOrigin.endsWith("vercel.app")) ||
+        // Chrome Extension support (LingoFlow Helper)
+        normalizedOrigin.startsWith("chrome-extension://") ||
+        normalizedOrigin.startsWith("moz-extension://");
 
       if (isAllowed) {
         return callback(null, true);

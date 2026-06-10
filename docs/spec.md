@@ -90,6 +90,25 @@ LingoFlow là một ứng dụng web học tiếng Anh toàn diện, kết hợp
   - **Nhập dữ liệu** (Import): Tải lên tệp JSON để đồng bộ và khôi phục dữ liệu học tập lên máy chủ (xóa dữ liệu cũ).
   - **Reset dữ liệu**: Xóa sạch từ vựng, kết quả làm bài của tài khoản hiện tại về trạng thái mặc định ban đầu.
 
+### 2.8 Chrome Extension – LingoFlow Helper (Sprint 2)
+
+- **Cài đặt tiện ích**: Extension Manifest v3 cho Chrome/Edge, cài đặt thủ công qua Developer Mode (Load Unpacked) hoặc Chrome Web Store (tương lai).
+- **Đăng nhập qua Popup**: Người dùng nhập email/password ngay trong popup extension. JWT token được lưu vào `chrome.storage.local` và gửi kèm mỗi request.
+- **Cấu hình API URL**: Trường nhập Backend API URL trong popup, hỗ trợ môi trường local dev (mặc định: `http://localhost:3000/api`) và production.
+- **Floating Button**: Khi bôi đen từ tiếng Anh (1–5 từ), nút ⚡ LingoFlow nổi lên ngay cạnh vùng chọn.
+- **Lookup Popup (Tra nghĩa tức thì)**: Click floating button → popup hiển thị:
+  - Từ vựng + phiên âm IPA
+  - Định nghĩa (lấy từ `GET /api/words/lookup` — proxy qua backend)
+  - Câu ví dụ
+  - Nút "💾 Lưu vào LingoFlow"
+- **Context Menu (Chuột phải)**: Fallback khi trang web có CSP cực đoan chặn floating button. Menu "💾 Lưu '{từ}' vào LingoFlow" luôn xuất hiện trong menu chuột phải.
+- **Toast Notifications**: Thông báo màu nổi góc phải màn hình:
+  - 🟢 Thành công: "Đã lưu 'X' (nghĩa) vào LingoFlow!"
+  - 🟠 Offline: "Từ đã được lưu tạm thời và sẽ tự đồng bộ khi có mạng!"
+  - 🔴 Lỗi: Thông báo lỗi cụ thể.
+  - 🟣 Auth: "Vui lòng đăng nhập lại qua biểu tượng Extension."
+- **Offline Sync Queue**: Khi mất mạng, từ vựng xếp vào hàng đợi `chrome.storage.local`. Badge icon hiển thị số đếm cam "+N". Chrome Alarm mỗi 1 phút kiểm tra và tự đồng bộ khi mạng khôi phục.
+
 ---
 
 ## 3. Yêu Cầu Chức Năng (Functional Requirements)
@@ -127,6 +146,17 @@ LingoFlow là một ứng dụng web học tiếng Anh toàn diện, kết hợp
 - [x] Vẽ các biểu đồ tiến độ học, phân bố hộp, và hiệu suất làm quiz bằng biểu đồ trực quan.
 - [x] Thay đổi chế độ sáng/tối (Dark Mode làm mặc định hệ thống).
 - [x] API xuất/nhập tệp JSON và xóa toàn bộ dữ liệu tài khoản trên cloud.
+
+### FR6: Chrome Extension (LingoFlow Helper)
+
+- [x] Bôi đen từ tiếng Anh trên bất kỳ trang web nào → Floating button nổi lên tức thì.
+- [x] Click floating button → Popup tra nghĩa: IPA, định nghĩa, ví dụ (từ `/api/words/lookup`).
+- [x] Nhấn "Lưu" → POST `/api/words` + JWT Token → Từ vào kho từ vựng với topic "Extension".
+- [x] Context menu chuột phải "Lưu vào LingoFlow" làm fallback khi CSP chặn floating button.
+- [x] Đăng nhập qua popup extension, lưu JWT an toàn vào `chrome.storage.local`.
+- [x] Toast thông báo phân loại: success / offline / auth / error.
+- [x] Offline queue: lưu tạm từ khi mất mạng, tự đồng bộ khi có kết nối trở lại.
+- [x] Badge icon cam "+N" hiển thị số từ chờ đồng bộ.
 
 ---
 
@@ -213,14 +243,18 @@ LingoFlow là một ứng dụng web học tiếng Anh toàn diện, kết hợp
 ## 6. Hạn Chế Hiện Tại
 
 - **Độ trễ khởi động của Server Free**: Do máy chủ Render (gói Free) tự động ngủ sau 15 phút không hoạt động, lượt gọi API đầu tiên sau thời gian này sẽ mất từ 50-60 giây để khởi động lại máy chủ (Cold Start).
-- **Chưa có âm thanh phát âm trực tiếp**: Hệ thống chưa tích hợp tính năng Text-to-Speech phát âm từ vựng.
-- **Chưa hoạt động ngoại tuyến (Offline mode)**: Do đã chuyển dịch hoàn toàn sang kiến trúc Client-Server, ứng dụng yêu cầu kết nối Internet liên tục để tải và cập nhật dữ liệu.
+- **Nghĩa từ Extension tự động dịch**: Endpoint `/api/words/lookup` trả về nghĩa tiếng Việt nhờ tích hợp Google Translate (kèm Việt hóa từ loại).
+- **Extension chỉ hỗ trợ ký tự Latin**: Chỉ nhận diện từ a-z, space, gạch ngang. Không hỗ trợ tiếng Hoa, Nhật, Hàn.
+- **Chưa có âm thanh phát âm trực tiếp trong Extension**: Extension chưa có nút loa phát âm trong lookup popup.
+- **Chưa hoạt động ngoại tuyến toàn phần (Offline mode)**: Ứng dụng web LingoFlow yêu cầu Internet để tải dữ liệu. Extension có offline queue nhưng không thể đọc từ vựng khi offline.
 
 ---
 
 ## 7. Tiềm Năng Mở Rộng (Future)
 
 - **Hỗ trợ Offline-first**: Lưu trữ tạm dữ liệu học tập vào IndexedDB khi mất kết nối mạng và tự động đồng bộ lên MongoDB khi có Internet trở lại.
-- **Phát âm từ vựng (Audio Pronunciation)**: Tích hợp thư viện hoặc API phát âm giọng đọc bản xứ.
 - **Tạo gợi ý học tập bằng AI**: Sử dụng mô hình ngôn ngữ (như Gemini API) để tạo câu ví dụ tự động phù hợp với ngữ cảnh học tập của người dùng.
 - **Học tập nhóm (Social Sharing)**: Cho phép người dùng chia sẻ bộ từ vựng hoặc thi đua bảng điểm quiz với nhau.
+- **Firefox Extension**: Chuyển đổi sang WebExtension API (`browser.*`) để hỗ trợ Firefox.
+- **Chrome Web Store**: Đóng gói và publish Extension lên Chrome Web Store để người dùng cài đặt không cần Developer Mode.
+- **Phát âm trong Extension popup**: Thêm nút loa phát âm từ ngay trong lookup popup của Extension.

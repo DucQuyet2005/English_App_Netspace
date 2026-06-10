@@ -51,7 +51,19 @@ English_App_Netspace/
 │   │   └── index.css            # CSS cấu hình Dark/Light theme & Glassmorphism
 │   ├── vercel.json              # Cấu hình rewrite URL cho Single Page App trên Vercel
 │   └── package.json             # Khai báo dependencies của client
+├── extension/                   # Chrome Extension – LingoFlow Helper (Sprint 2)
+│   ├── manifest.json            # Manifest v3, khai báo permissions & scripts
+│   ├── background.js            # Service Worker: API calls, offline queue, badge
+│   ├── content.js               # Content Script: floating button + lookup popup
+│   ├── popup.html               # Popup UI: đăng nhập & trạng thái kết nối
+│   ├── popup.js                 # Popup logic: auth, server URL config
+│   ├── styles.css               # Shared CSS: Glassmorphism dark theme
+│   └── icons/                   # Icons 16/48/128px
 └── docs/                        # Tài liệu dự án (spec, architecture, changelog, plans)
+    └── plans/
+        ├── extension.md         # Tài liệu kỹ thuật Chrome Extension (Sprint 2)
+        ├── voice.md             # Tài liệu Voice Recognition (Sprint 1)
+        └── ...
 ```
 
 ---
@@ -241,6 +253,7 @@ Hệ thống được cấu hình tối ưu để chạy trên các môi trườ
 
 ### 8.2 Backend (Render)
 * **Root Directory**: `backend` (để Render tập trung chạy đúng mã nguồn Node.js).
+* **Cổng chạy Local (Local Port)**: Backend chạy mặc định tại cổng `3000` (`http://localhost:3000`) ở môi trường phát triển cục bộ.
 * **Build Command**: `npm install && npm run build` (Biên dịch tệp `.ts` sang thư mục chạy `dist/`).
 * **Start Command**: `node dist/index.js`.
 * **Cấu hình CORS**: Tệp `backend/src/index.ts` thiết lập CORS động:
@@ -261,3 +274,92 @@ Hệ thống được cấu hình tối ưu để chạy trên các môi trườ
   * `MONGODB_URI`: Đường dẫn kết nối MongoDB Atlas đã được mã hóa password.
   * `JWT_SECRET`: Khóa bí mật dùng để tạo chữ ký cho token JWT.
   * `FRONTEND_URL`: Địa chỉ trang web Frontend chính để bảo mật CORS.
+
+---
+
+## 11. Kiến Trúc Chrome Extension (Sprint 2)
+
+### 11.1 Tổng quan
+
+Chrome Extension **LingoFlow Helper** hoạt động hoàn toàn độc lập với Frontend React, giao tiếp trực tiếp với Backend Express API. Extension sử dụng **Manifest v3** — tiêu chuẩn bảo mật hiện đại nhất của Chrome.
+
+### 11.2 Các thành phần
+
+| Thành phần | File | Môi trường | Chức năng |
+|-----------|------|-----------|-----------|
+| Service Worker | `background.js` | Extension background | Xử lý API calls, offline queue, badge, context menu |
+| Content Script | `content.js` | Mọi trang web | Inject floating button, lookup popup, toast |
+| Popup UI | `popup.html` + `popup.js` | Extension popup | Đăng nhập, hiển thị trạng thái |
+
+### 11.3 Luồng dữ liệu Extension
+
+```
+[Bôi đen từ trên trang web]
+         ↓
+[content.js – mouseup event]
+         ↓
+[Floating Button nổi lên]
+         ↓ (click)
+[content.js gửi message LOOKUP_WORD]
+         ↓
+[background.js Service Worker]
+    ├── GET /api/words/lookup?word=xxx  →  [Backend Express]  →  [Free Dictionary API]
+    └── Trả kết quả về content.js
+         ↓
+[Lookup Popup hiển thị nghĩa/IPA/example]
+         ↓ (nhấn "Lưu")
+[content.js gửi message SAVE_WORD]
+         ↓
+[background.js Service Worker]
+    ├── Online:  POST /api/words + Bearer JWT  →  [MongoDB Atlas]
+    └── Offline: → chrome.storage.local (queue)  →  Badge "+N"
+                                                     ↓ (khi mạng phục hồi)
+                                                 chrome.alarms (1 phút)
+                                                     ↓
+                                                 processSyncQueue()
+```
+
+### 11.4 Bảo mật
+
+- **JWT Token**: Lưu trong `chrome.storage.local` (an toàn hơn `localStorage` — chỉ extension đó truy cập được, không bị XSS tấn công).
+- **CORS Backend**: `backend/src/index.ts` đã cập nhật cho phép `chrome-extension://` origin.
+- **Token hết hạn**: Background tự phát hiện HTTP 401, xóa token cũ và hiển thị thông báo yêu cầu đăng nhập lại.
+- **CSP fallback**: Nếu trang web chặn inject DOM (CSP), Context Menu vẫn hoạt động thông qua `chrome.contextMenus` API native.
+
+### 11.5 API mới: `GET /api/words/lookup`
+
+Endpoint tra nghĩa server-side được thêm vào `backend/src/routes/words.ts`:
+
+```typescript
+GET /api/words/lookup?word=prosperous
+Authorization: Bearer <JWT>
+
+// Response:
+{
+  "success": true,
+  "word": "prosperous",
+  "ipa": "/ˈprɒs.pər.əs/",
+  "meaning": "(adjective) successful in material terms; flourishing financially.",
+  "example": "a prosperous businessman"
+}
+```
+
+**Lý do server-side proxy**: Gọi Free Dictionary API từ phía server thay vì từ Extension để:
+1. Tránh vấn đề CORS của Free Dictionary API với Chrome Extension
+2. Cache có thể triển khai trong tương lai (tránh gọi lại cùng từ nhiều lần)
+3. Fallback timeout 5 giây — nếu server quá tải, Extension tự gọi trực tiếp
+
+### 11.6 Offline Sync Queue Schema
+
+```javascript
+// chrome.storage.local['lingoflow_offline_queue']
+[
+  {
+    word: "prosperous",
+    wordData: { word, ipa, meaning, example },
+    timestamp: 1717999200000
+  },
+  ...
+]
+```
+
