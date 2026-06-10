@@ -190,7 +190,48 @@ Quá trình sinh câu hỏi diễn ra hoàn toàn ở phía client để đảm 
 
 ---
 
-## 8. Triển Khai Thực Tế (Deployment & Environment)
+## 9. Kiến Trúc Nhận Diện Giọng Nói (Voice Recognition - Sprint 1)
+
+Toàn bộ tính năng xử lý ở phía **Frontend**, không thay đổi Database Schema.
+
+### 9.1 Module `frontend/src/utils/voiceHelper.ts`
+
+| Hàm | Mô tả |
+|------|--------|
+| `normalizeString(str)` | Chuẩn hóa chuỗi: lowercase, xóa dấu câu, khoảng trắng thừa |
+| `levenshteinDistance(a, b)` | Tính khoảng cách chỉnh sửa tối thiểu, O(m×n) DP |
+| `calculateSimilarity(recognized, target)` | Tỷ lệ tương đồng 0.0–1.0 theo công thức `1 - dist/maxLen` |
+| `isSpeechRecognitionSupported()` | Kiểm tra hỗ trợ `window.SpeechRecognition` hay `webkitSpeechRecognition` |
+| `startVoiceRecognition(word, onStart, onEnd)` | Bắt đầu ghi âm, trả về `Promise<VoiceRecognitionResult \ null>` |
+
+### 9.2 Cấu Hình Web Speech API
+
+```typescript
+recognition.lang = 'en-US';        // Giọng Anh-Mỹ
+recognition.interimResults = false; // Chỉ lấy kết quả cuối
+recognition.maxAlternatives = 3;    // Lấy 3 phương án, chọn cái tốt nhất
+recognition.continuous = false;     // Tự dừng sau một lượt
+```
+
+### 9.3 API Backend Mới: `PATCH /api/words/:id/set-learned`
+
+Endpoint mới được bổ sung để sửa bug Flashcard không đồng bộ trạng thái "Đã thuộc":
+
+```
+PATCH /api/words/:id/set-learned
+Authorization: Bearer <JWT>
+Body: { "learned": true | false }
+```
+
+**Logic:**
+- `learned = true`  → `box = min(5, box + 1)`, `nextReviewDays = 2^(box-1)`
+- `learned = false` → `box = 1`, `nextReviewDays = 1` (ôn lại ngày mai)
+
+Khác biệt với `PATCH /api/words/:id/learned` (toggle): endpoint mới **set trực tiếp** giá trị `learned` thay vì đảo ngược, tránh race condition khi Flashcard gọi API nhiều lần.
+
+---
+
+## 10. Triển Khai Thực Tế (Deployment & Environment)
 
 Hệ thống được cấu hình tối ưu để chạy trên các môi trường đám mây miễn phí:
 

@@ -25,6 +25,53 @@ Tất cả các thay đổi đáng chú ý đối với project LingoFlow đư�
 
 ---
 
+## [v0.5.0] - 2026-06-09
+
+Hoàn thành **Sprint 1**: Tích hợp tính năng Kiểm tra Phát âm bằng Giọng nói (US-002) và sửa lỗi đồng bộ trạng thái "Đã thuộc" giữa Flashcard và Từ vựng.
+
+### [ADDED]
+
+- **Tính năng Kiểm tra Phát âm bằng Giọng nói (Voice Recognition - US-002)**:
+  - Thêm nút **Microphone** (🎤 Kiểm tra phát âm) trên mặt trước thẻ Flashcard, cạnh nút loa phát âm.
+  - Tích hợp **Web Speech API** (`SpeechRecognition`) với cấu hình `lang='en-US'`, `maxAlternatives=3` để lấy phương án nhận diện tốt nhất.
+  - Thuật toán **Levenshtein Distance** chấm điểm phát âm: tính tỷ lệ tương đồng (0–100%) sau khi chuẩn hóa chuỗi (lowercase, xóa dấu câu).
+  - Ngưỡng chấp nhận **75%**: phân 3 mức phản hồi (Xuất sắc ≥95%, Tốt 75–94%, Cần cải thiện <75%).
+  - Kết quả hiển thị với **AnimatePresence** mượt mà (fade + slide), thanh progress bar trực quan, tự động ẩn sau 4 giây.
+  - Nút Microphone ẩn hoàn toàn nếu trình duyệt không hỗ trợ Web Speech API (tự động kiểm tra `isSpeechRecognitionSupported()`).
+  - Xử lý đầy đủ các edge case: `no-speech`, `not-allowed` (mic bị chặn), lỗi runtime.
+  - Tạo tệp tiện ích tập trung `frontend/src/utils/voiceHelper.ts` với các hàm: `normalizeString`, `levenshteinDistance`, `calculateSimilarity`, `startVoiceRecognition`.
+  - Lập tài liệu kỹ thuật đầy đủ tại `docs/plans/voice.md`.
+
+- **API Backend mới `PATCH /api/words/:id/set-learned`**:
+  - Endpoint set trực tiếp trạng thái `learned` (không toggle) kèm cập nhật hộp Leitner đúng chiều.
+  - Được sử dụng bởi Flashcard thay thế endpoint toggle cũ để đảm bảo tính nhất quán dữ liệu.
+
+### [FIXED]
+
+- **Sửa lỗi đồng bộ trạng thái "Đã thuộc" giữa Flashcard và Từ vựng**:
+  - **Mô tả lỗi**: Khi người dùng nhấn "Đã nhớ" trong Flashcard, trạng thái "Đã thuộc" trong trang Từ vựng không cập nhật đúng. Nguyên nhân: logic cũ dùng `toggleWordLearned` (đảo ngược), gây race condition — nếu từ đã `learned=true`, toggle sẽ set lại thành `false`.
+  - **Giải pháp**: Tạo hàm `setWordLearned(id, learned)` trong `AppContext.tsx` gọi endpoint `PATCH /api/words/:id/set-learned` để **set trực tiếp** giá trị `learned=true/false`.
+  - "Đã nhớ" ✓ → luôn set `learned=true`, nâng hộp Leitner.
+  - "Chưa nhớ" ✗ → luôn set `learned=false`, reset về Hộp 1.
+
+---
+
+## [v0.4.0] - 2026-06-07
+
+
+Bổ sung hệ thống Gamification với tính năng Bảng xếp hạng tuần (Weekly Leaderboard) giúp tăng cường độ tương tác và động lực học tập của người dùng.
+
+### [ADDED]
+
+- **Tính năng Bảng Xếp Hạng Tuần (Weekly Leaderboard)**:
+  - Thiết kế UI/UX trang `Leaderboard.tsx` theo phong cách Premium Glassmorphism, làm nổi bật Top 3 người dẫn đầu (Vinh danh Huy chương Vàng, Bạc, Đồng) và hiệu ứng viền sáng (glow) đối với hạng của người dùng hiện tại.
+  - Xây dựng thuật toán tính điểm xếp hạng tự động qua API `GET /api/users/leaderboard` bằng kỹ thuật MongoDB Aggregation Pipeline (gom nhóm bài thi Quiz theo tuần và tổng hợp câu đúng).
+  - Thiết lập cơ chế Time-Windowing tự động tính điểm từ 00:00 Thứ Hai đến 23:59 Chủ Nhật, tự động tạo chu kỳ xếp hạng mới mà không cần can thiệp dọn dẹp DB.
+  - Cập nhật thanh điều hướng `Sidebar.tsx` và `MobileNav.tsx` để hiển thị menu "Xếp hạng" (biểu tượng Trophy), hỗ trợ dịch ngôn ngữ i18n.
+  - Lập đặc tả tài liệu triển khai Bảng xếp hạng tuần tại `docs/plans/rank.md`.
+
+---
+
 ## [v0.3.0] - 2026-06-07
 
 Bổ sung tính năng chuyển đổi ngôn ngữ hiển thị toàn diện (đa ngôn ngữ i18n) cho giao diện người dùng và lưu trữ cấu hình trên client-side.

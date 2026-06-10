@@ -43,4 +43,4 @@ export interface User {
   createdAt: string;
 }
 
-export type TabType = 'dashboard' | 'vocabulary' | 'flashcard' | 'quiz' | 'stats' | 'settings';
+export type TabType = 'dashboard' | 'vocabulary' | 'flashcard' | 'quiz' | 'stats' | 'settings' | 'leaderboard';

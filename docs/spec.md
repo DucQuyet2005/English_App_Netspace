@@ -50,6 +50,13 @@ LingoFlow là một ứng dụng web học tiếng Anh toàn diện, kết hợp
   - Hộp 4 → Ôn tập sau 7 ngày.
   - Hộp 5 → Ôn tập sau 14 ngày.
 - **Lọc thẻ cần ôn**: Chỉ tải các thẻ có lịch ôn tập đến hạn (`nextReviewDate` ≤ thời điểm hiện tại).
+- **Phát âm từ vựng (Audio Pronunciation)**: Nút loa phát âm cạnh từ vựng trên mặt trước thẻ, ưu tiên file .mp3 thật từ Free Dictionary API, tự động fallback sang Web Speech API (TTS) khi mất mạng.
+- **Kiểm tra phát âm bằng giọng nói (Voice Recognition)**: Nút Microphone cho phép người học đọc to từ vựng và nhận phản hồi chấm điểm phát âm tức thì:
+  - Sử dụng **Web Speech API** tích hợp sẵn trong trình duyệt để nhận diện giọng nói.
+  - Chấm điểm bằng thuật toán **Levenshtein Distance** kết hợp chuẩn hóa chuỗi.
+  - Ngưỡng chấp nhận **75%** tỷ lệ tương đồng. Phản hồi phân 3 mức: Xuất sắc (≥95%), Tốt (75–94%), Cần cải thiện (<75%).
+  - Thanh tiến trình trực quan hiển thị phần trăm độ khớp, tự động ẩn sau 4 giây.
+  - Nút ẩn hoàn toàn nếu trình duyệt không hỗ trợ Web Speech API.
 
 ### 2.5 Quiz (Kiểm Tra)
 
@@ -88,28 +95,35 @@ LingoFlow là một ứng dụng web học tiếng Anh toàn diện, kết hợp
 ## 3. Yêu Cầu Chức Năng (Functional Requirements)
 
 ### FR1: Quản Lý Tài Khoản (Auth)
+
 - [x] Đăng ký tài khoản bằng Email, mật khẩu và tên hiển thị.
 - [x] Đăng nhập bằng Email, duy trì phiên đăng nhập thông qua lưu trữ Token JWT.
 - [x] Đăng xuất và điều hướng người dùng về trang đăng nhập.
 - [x] Bảo mật dữ liệu biệt lập giữa các tài khoản người dùng khác nhau.
 
 ### FR2: Quản Lý Từ Vựng
+
 - [x] Thêm từ mới thủ công với các thuộc tính cơ bản.
 - [x] Tự động truy vấn và điền phiên âm IPA thông qua API từ điển khi nhập xong từ.
 - [x] Sửa, xóa và xem danh sách từ vựng dạng bảng (Desktop) hoặc dạng thẻ (Mobile).
 - [x] Tìm kiếm nhanh (đồng bộ 2 chiều ở thanh Header) và lọc theo chủ đề, hộp Leitner, trạng thái học.
 
 ### FR3: Flashcard
+
 - [x] Render thẻ flashcard dạng 3D với hiệu ứng lật mặt khi chạm.
-- [x] Nút "Đã nhớ" / "Chưa nhớ" cập nhật chính xác cấp độ Hộp và lịch ôn tập tiếp theo (`nextReviewDate`) trên cơ sở dữ liệu MongoDB.
+- [x] Nút "Đã nhớ" → set `learned=true`, nâng hộp Leitner; Nút "Chưa nhớ" → set `learned=false`, reset về Hộp 1, đồng bộ chính xác trạng thái "Đã thuộc" trong trang Từ vựng.
 - [x] Hiển thị thanh tiến trình ôn tập của bộ thẻ hiện tại.
+- [x] Phát âm từ vựng bằng nút loa (Dictionary API + TTS fallback).
+- [x] Kiểm tra phát âm bằng Microphone: nhận diện giọng nói qua Web Speech API, chấm điểm bằng Levenshtein Distance, phản hồi tức thì với ngưỡng 75%.
 
 ### FR4: Quiz
+
 - [x] Sinh câu hỏi trắc nghiệm tự động từ kho từ vựng.
 - [x] Ghi nhận câu trả lời, tính toán thời gian làm bài, tính điểm.
 - [x] Lưu lịch sử bài quiz (`QuizAttempt`) lên MongoDB khi hoàn thành.
 
 ### FR5: Thống Kê & Cài Đặt
+
 - [x] Vẽ các biểu đồ tiến độ học, phân bố hộp, và hiệu suất làm quiz bằng biểu đồ trực quan.
 - [x] Thay đổi chế độ sáng/tối (Dark Mode làm mặc định hệ thống).
 - [x] API xuất/nhập tệp JSON và xóa toàn bộ dữ liệu tài khoản trên cloud.
@@ -119,16 +133,19 @@ LingoFlow là một ứng dụng web học tiếng Anh toàn diện, kết hợp
 ## 4. Yêu Cầu Phi Chức Năng (Non-Functional Requirements)
 
 ### NFR1: Hiệu Năng & Đồng Bộ
+
 - [x] Thời gian phản hồi của API backend < 300ms (ngoại trừ lượt gọi lạnh đầu tiên khi server Render khởi động lại).
 - [x] Trạng thái giao diện thay đổi tức thì (Optimistic UI updates) khi thêm/sửa/xóa từ vựng để tránh cảm giác trễ mạng.
 - [x] Quản lý tải trang mượt mà, sử dụng các hiệu ứng loading/skeleton khi đợi phản hồi từ database.
 
 ### NFR2: Bảo Mật Dữ Liệu
+
 - [x] Mật khẩu người dùng được băm bằng thuật toán một chiều `bcryptjs`.
 - [x] Tất cả các kết nối trao đổi dữ liệu giữa Frontend và Backend phải thông qua giao thức bảo mật HTTPS (trên môi trường production).
 - [x] Các route API lấy và thay đổi dữ liệu từ vựng/quiz đều được bảo vệ bằng middleware JWT.
 
 ### NFR3: Triển Khai & Cấu Hình
+
 - [x] Client (Vite + React) được triển khai lên **Vercel** với cấu hình ghi đè định tuyến (`vercel.json`) nhằm tránh lỗi 404 khi người dùng tải lại trang ở các URL con.
 - [x] Server (Express.js) được triển khai lên **Render** kết nối trực tiếp với Cluster đám mây của **MongoDB Atlas**.
 - [x] Thiết lập CORS chỉ chấp nhận kết nối từ tên miền của Frontend (được cấu hình động hỗ trợ các subdomain dạng `*.vercel.app`).
@@ -138,6 +155,7 @@ LingoFlow là một ứng dụng web học tiếng Anh toàn diện, kết hợp
 ## 5. Cấu Trúc Dữ Liệu (MongoDB Schemas)
 
 ### User (Người Dùng)
+
 ```typescript
 {
   id: ObjectId;
@@ -146,16 +164,17 @@ LingoFlow là một ứng dụng web học tiếng Anh toàn diện, kết hợp
   displayName: string;
   settings: {
     darkMode: boolean; // Mặc định true
-    theme: 'dark' | 'light' | 'normal';
+    theme: "dark" | "light" | "normal";
     defaultQuizSize: number; // Mặc định 10
     dailyGoal: number; // Mặc định 5
-  };
+  }
   createdAt: Date;
   updatedAt: Date;
 }
 ```
 
 ### Word (Từ Vựng)
+
 ```typescript
 {
   id: ObjectId;
@@ -174,6 +193,7 @@ LingoFlow là một ứng dụng web học tiếng Anh toàn diện, kết hợp
 ```
 
 ### QuizAttempt (Kết Quả Làm Bài)
+
 ```typescript
 {
   id: ObjectId;
