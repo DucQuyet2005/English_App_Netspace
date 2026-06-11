@@ -26,6 +26,26 @@ Tất cả các thay đổi đáng chú ý đối với project LingoFlow đư�
 
 ---
 
+## [v0.9.0] - 2026-06-11
+
+Cải tiến toàn diện **tính năng Thẻ ghi nhớ (Flashcard)**: tối ưu hóa giao diện mượt mà và nâng cao thuật toán Spaced Repetition (Leitner) giúp người dùng học tập hiệu quả hơn.
+
+### [ADDED]
+
+- **Vuốt kéo thẻ (Swipe Gestures)**: Hỗ trợ vuốt thẻ sang trái (Chưa nhớ) hoặc sang phải (Đã nhớ) mượt mà bằng ngón tay hoặc chuột nhờ thư viện Framer Motion (`motion/react`).
+- **Chỉ báo trực quan khi kéo (Swipe Indicators)**: Hiển thị nhãn chỉ báo "Chưa nhớ" (đỏ) / "Đã nhớ ✓" (teal) mờ dần tương ứng với hướng kéo thẻ.
+- **Phím tắt bàn phím (Keyboard Shortcuts)**: `Space` để lật thẻ, `A`/`D` hoặc phím mũi tên để đánh giá thẻ, `W` để nghe phát âm, và `S` để kiểm tra giọng nói.
+- **Bộ lọc Đến hạn Ôn tập (Due Reviews)**: Chỉ hiển thị các thẻ đã đến thời điểm ôn tập định kỳ dựa trên Spaced Repetition, có thông báo gợi ý thông minh khi hết từ đến hạn.
+- **Biểu đồ Hộp Leitner (Leitner Chart)**: Trực quan hóa số lượng từ vựng phân bổ trong 5 hộp Leitner của người dùng dưới dạng biểu đồ cột chuyển động sinh động.
+- **Màn hình Tổng kết Phiên học (Session Summary)**: Báo cáo nhanh số từ đã ôn, số từ đã nhớ, tỉ lệ chính xác và hỗ trợ nút "Ôn lại các từ chưa nhớ" để học xoay vòng hiệu quả.
+
+### [CHANGED]
+
+- **`frontend/src/pages/FlashcardsPage.tsx`**: Viết lại toàn bộ component để hỗ trợ các cơ chế vuốt kéo, phím tắt, lọc Spaced Repetition, thống kê phiên học và biểu đồ Leitner.
+- **`frontend/src/index.css`**: Bổ sung các styles hỗ trợ 3D Card (perspective, backface-visibility) và 5 lớp phát sáng (`card-glow-1` đến `card-glow-5`) tương ứng với Hộp Leitner 1-5 của thẻ.
+
+---
+
 ## [v0.8.0] - 2026-06-10
 
 Cải tiến **chức năng Ngoại tuyến (Offline)**: Backend tự động dịch thuật & điền đầy đủ thông tin từ vựng khi đồng bộ, giảm giới hạn hàng đợi xuống **20 từ** để tối ưu hiệu năng và trải nghiệm người dùng.
