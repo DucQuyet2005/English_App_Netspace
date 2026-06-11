@@ -247,3 +247,32 @@ html.dark {
   --shadow-md: 0 8px 24px rgba(0,0,0,0.6);
   --shadow-lg: 0 18px 48px rgba(0,0,0,0.7);
 }
+
+/* Custom 3D Card & Glow styles for Flashcards */
+.card-perspective {
+  perspective: 1500px;
+}
+.card-inner {
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.card-face {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.card-glow-1 {
+  box-shadow: 0 0 25px -5px rgba(225, 29, 72, 0.2), var(--shadow-lg);
+}
+.card-glow-2 {
+  box-shadow: 0 0 25px -5px rgba(217, 119, 6, 0.2), var(--shadow-lg);
+}
+.card-glow-3 {
+  box-shadow: 0 0 25px -5px rgba(20, 184, 166, 0.2), var(--shadow-lg);
+}
+.card-glow-4 {
+  box-shadow: 0 0 25px -5px rgba(99, 102, 241, 0.2), var(--shadow-lg);
+}
+.card-glow-5 {
+  box-shadow: 0 0 30px -3px rgba(245, 158, 11, 0.3), var(--shadow-lg);
+}
+
