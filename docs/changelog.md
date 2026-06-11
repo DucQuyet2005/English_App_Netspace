@@ -24,6 +24,10 @@ Tất cả các thay đổi đáng chú ý đối với project LingoFlow đư�
 - PWA support (offline mode)
 - Firefox Extension (WebExtension API)
 
+### [CHANGED]
+
+- **Flashcards**: Thêm chức năng “Quay lại thẻ trước” để người dùng hoàn tác nếu bấm nhầm Đã nhớ / Chưa nhớ trong phiên học.
+
 ---
 
 ## [v0.9.0] - 2026-06-11
