@@ -30,6 +30,19 @@ Tất cả các thay đổi đáng chú ý đối với project LingoFlow đư�
 
 ---
 
+## [v0.9.1] - 2026-06-13
+
+### [CHANGED]
+
+- **Mobile UI**: Tối ưu hóa kích thước hộp từ vựng di động (Vocabulary Card) gọn gàng, tự nhiên và cân đối hơn.
+- **Stats Chart (Biểu đồ phân tích điểm số)**:
+  - Tinh chỉnh đường biểu đồ (Cubic Bezier) mượt mà và mảnh mai hơn (`strokeWidth="2.2"`).
+  - Thay đổi hệ màu sắc sang dải màu mộc mạc từ Đá Olive (`#5a5a40`) sang Terracotta (`#cb7a5c`) kèm bóng đổ ấm áp đồng bộ với phong cách thiết kế Organic của LingoFlow.
+  - Tối giản hóa trục hoành (X-Axis) chỉ hiển thị lượt thi đầu và cuối để tránh chồng chữ trên di động.
+  - Thiết kế Tooltip điểm số (`Lần X: Yđ`) đồng bộ: hiển thị khi di chuột/nhấp chuột trên máy tính, và chạm giữ ngón tay trên điện thoại di động.
+
+---
+
 ## [v0.9.0] - 2026-06-11
 
 Cải tiến toàn diện **tính năng Thẻ ghi nhớ (Flashcard)**: tối ưu hóa giao diện mượt mà và nâng cao thuật toán Spaced Repetition (Leitner) giúp người dùng học tập hiệu quả hơn.
