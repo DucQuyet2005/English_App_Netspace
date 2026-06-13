@@ -27,6 +27,7 @@ export const StatsPage: React.FC = () => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importStatus, setImportStatus] = useState<{ success?: boolean; message?: string } | null>(null);
+  const [pressedPoint, setPressedPoint] = useState<any | null>(null);
 
   const learnedCount = words.filter(w => w.learned).length;
   const totalCount = words.length;
@@ -52,21 +53,39 @@ export const StatsPage: React.FC = () => {
       const x = padding + (idx / (lastTenAttempts.length - 1)) * chartWidth;
       // Điểm 0-100 chuyển thành Y từ chartHeight về 0. Y = Height - (Score / 100) * Height
       const y = padding + chartHeight - (attempt.score / 100) * chartHeight;
-      return { x, y, score: attempt.score };
+      
+      // Tìm số thứ tự tuyệt đối của lần kiểm tra này (1-based)
+      const totalAttemptsCount = attempts.length;
+      const originalIdx = attempts.findIndex(a => a.id === attempt.id);
+      const attemptNumber = originalIdx !== -1 ? (totalAttemptsCount - originalIdx) : (idx + 1);
+
+      return { 
+        x, 
+        y, 
+        score: attempt.score, 
+        attemptNumber,
+        correctAnswers: attempt.correctAnswers,
+        totalQuestions: attempt.totalQuestions
+      };
     });
 
-    // Tạo đường d cho biểu đồ line
+    // Tạo đường d cho biểu đồ line sử dụng đường cong Cubic Bezier mượt mà, tự nhiên
     let path = `M ${points[0].x} ${points[0].y}`;
-    for (let i = 1; i < points.length; i++) {
-      // Để mô phỏng đường cong Bezier mềm mại hoặc gấp khúc tinh tế hệt mẫu
-      path += ` L ${points[i].x} ${points[i].y}`;
+    for (let i = 0; i < points.length - 1; i++) {
+      const p0 = points[i];
+      const p1 = points[i + 1];
+      const cpX1 = p0.x + (p1.x - p0.x) / 3;
+      const cpY1 = p0.y;
+      const cpX2 = p0.x + (2 * (p1.x - p0.x)) / 3;
+      const cpY2 = p1.y;
+      path += ` C ${cpX1} ${cpY1}, ${cpX2} ${cpY2}, ${p1.x} ${p1.y}`;
     }
 
-    // Tạo đường cho phần fill gradient (Area)
+    // Tạo đường cho phần fill gradient (Area) bám sát theo đường cong Bezier
     const area = `${path} L ${points[points.length - 1].x} ${svgHeight - padding} L ${points[0].x} ${svgHeight - padding} Z`;
 
     return { path, points, area };
-  }, [lastTenAttempts]);
+  }, [lastTenAttempts, attempts]);
 
   // Xử lý Import File JSON
   const handleImportFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,7 +100,7 @@ export const StatsPage: React.FC = () => {
       setTimeout(() => setImportStatus(null), 5000); // Ẩn thông báo sau 5s
     };
     reader.readAsText(file);
-    
+
     // Reset file input để có thể import lại
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -172,20 +191,25 @@ export const StatsPage: React.FC = () => {
         {attempts.length >= 2 ? (
           <div>
             {/* SVG Chart area */}
-            <div className="h-64 relative">
+            <div className="h-64 relative select-none">
               <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 500 150">
                 <defs>
-                  {/* Gradient cho đường cong line */}
+                  {/* Gradient cho đường cong line (Olive -> Terracotta ấm áp, đồng điệu với LingoFlow) */}
                   <linearGradient id="chartGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                     <stop offset="0%" stopColor="#5a5a40" />
-                    <stop offset="100%" stopColor="#d99c7b" />
+                    <stop offset="100%" stopColor="#cb7a5c" />
                   </linearGradient>
 
                   {/* Gradient đổ bóng cho vùng Area bên dưới */}
                   <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#5a5a40" stopOpacity="0.18" />
-                    <stop offset="100%" stopColor="#5a5a40" stopOpacity="0.0" />
+                    <stop offset="0%" stopColor="#cb7a5c" stopOpacity="0.15" />
+                    <stop offset="100%" stopColor="#5a5a40" stopOpacity="0.01" />
                   </linearGradient>
+
+                  {/* Bộ lọc đổ bóng cho đường line biểu đồ nhẹ nhàng, ấm áp */}
+                  <filter id="chartShadow" x="-10%" y="-10%" width="120%" height="130%">
+                    <feDropShadow dx="0" dy="2" stdDeviation="2.5" floodColor="#cb7a5c" floodOpacity="0.08" />
+                  </filter>
                 </defs>
 
                 {/* Gridlines ngang */}
@@ -204,45 +228,135 @@ export const StatsPage: React.FC = () => {
                   );
                 })}
 
+                {/* Gridlines dọc dạng dashed kết nối điểm xuống trục X */}
+                {linePathAndPoints.points.map((pt, pIdx) => (
+                  <line
+                    key={`v-grid-${pIdx}`}
+                    x1={pt.x}
+                    y1={pt.y}
+                    x2={pt.x}
+                    y2={135}
+                    stroke="rgba(90, 90, 64, 0.06)"
+                    strokeWidth="1"
+                    strokeDasharray="3,3"
+                  />
+                ))}
+
                 {/* Vẽ vùng Gradient phơi sáng (Area) */}
                 {linePathAndPoints.area && (
                   <path d={linePathAndPoints.area} fill="url(#areaGradient)" />
                 )}
 
-                {/* Vẽ đường line gập uốn mềm mại */}
+                {/* Vẽ đường line uốn lượn mảnh mai, tinh tế */}
                 {linePathAndPoints.path && (
                   <path
                     d={linePathAndPoints.path}
                     fill="none"
                     stroke="url(#chartGradient)"
-                    strokeWidth="3.5"
+                    strokeWidth="2.2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
+                    filter="url(#chartShadow)"
                   />
                 )}
 
-                {/* Các chấm điểm nốt thắt trị số */}
+                {/* Các chấm điểm nốt thắt trị số kèm tooltip hover và ấn giữ */}
                 {linePathAndPoints.points.map((pt, pIdx) => (
-                  <g key={pIdx} className="group/point">
+                  <g 
+                    key={pIdx} 
+                    className="group/point"
+                    onMouseDown={() => setPressedPoint({ ...pt, pIdx })}
+                    onMouseUp={() => setPressedPoint(null)}
+                    onMouseLeave={() => setPressedPoint(null)}
+                    onTouchStart={(e) => {
+                      setPressedPoint({ ...pt, pIdx });
+                    }}
+                    onTouchEnd={() => setPressedPoint(null)}
+                    onTouchCancel={() => setPressedPoint(null)}
+                  >
+                    {/* Đường gióng dọc sáng lên khi hover vào điểm */}
+                    <line
+                      x1={pt.x}
+                      y1={15}
+                      x2={pt.x}
+                      y2={135}
+                      stroke="url(#chartGradient)"
+                      strokeWidth="1"
+                      strokeDasharray="2,2"
+                      className="opacity-0 group-hover/point:opacity-35 transition-opacity duration-200 pointer-events-none"
+                    />
+
+                    {/* Vùng cảm ứng hover rộng rãi để dễ tương tác */}
                     <circle
                       cx={pt.x}
                       cy={pt.y}
-                      r="5"
-                      fill="#4f46e5"
-                      stroke="#ffffff"
-                      strokeWidth="2.5"
-                      className="cursor-pointer transition-all hover:r-[7.5] hover:fill-teal-400"
+                      r="14"
+                      fill="transparent"
+                      className="cursor-pointer select-none"
                     />
+
+                    {/* Vòng tròn hiệu ứng lan tỏa (Glow) thanh mảnh */}
+                    <circle
+                      cx={pt.x}
+                      cy={pt.y}
+                      r="6"
+                      fill="url(#chartGradient)"
+                      className="opacity-0 group-hover/point:opacity-25 transition-opacity duration-200 pointer-events-none"
+                    />
+
+                    {/* Chấm tròn chính nhỏ gọn, tinh xảo */}
+                    <circle
+                      cx={pt.x}
+                      cy={pt.y}
+                      r="3.2"
+                      fill="#ffffff"
+                      stroke="url(#chartGradient)"
+                      strokeWidth="1.6"
+                      className="transition-all duration-200 group-hover/point:r-4 cursor-pointer"
+                    />
+
+                    {/* Tâm chấm tròn siêu nhỏ */}
+                    <circle
+                      cx={pt.x}
+                      cy={pt.y}
+                      r="0.8"
+                      fill="url(#chartGradient)"
+                      className="pointer-events-none"
+                    />
+
+                    {/* Tooltip hiển thị số lần thi và điểm số sinh động (hover/click trên desktop, chạm giữ trên mobile) */}
+                    <g className={`${pressedPoint?.pIdx === pIdx ? 'opacity-100' : 'opacity-0 group-hover/point:opacity-100'} transition-opacity duration-200 pointer-events-none`}>
+                      <rect
+                        x={pt.x - 32}
+                        y={pt.y - 32}
+                        width="64"
+                        height="20"
+                        rx="6"
+                        fill="#57534e"
+                        className="shadow-md"
+                      />
+                      <polygon
+                        points={`${pt.x - 4},${pt.y - 12} ${pt.x + 4},${pt.y - 12} ${pt.x},${pt.y - 8}`}
+                        fill="#57534e"
+                      />
+                      <text
+                        x={pt.x}
+                        y={pt.y - 19}
+                        textAnchor="middle"
+                        className="text-[9px] font-black fill-[#fbfaf7]"
+                      >
+                        Lần {pt.attemptNumber}: {pt.score}đ
+                      </text>
+                    </g>
                   </g>
                 ))}
               </svg>
             </div>
             
-            {/* Trục X thời gian */}
-            <div className="flex justify-between mt-3 text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wide">
-              {lastTenAttempts.map((_, idx) => (
-                <span key={idx}>Lượt {idx + 1}</span>
-              ))}
+            {/* Trục X thời gian - Chỉ hiển thị nhãn đầu tiên (Lần đầu/Lần X) và nhãn cuối cùng (Lần Y) */}
+            <div className="flex justify-between mt-3 text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wide px-4">
+              <span>Lần {linePathAndPoints.points[0].attemptNumber}</span>
+              <span>Lần {linePathAndPoints.points[linePathAndPoints.points.length - 1].attemptNumber}</span>
             </div>
           </div>
         ) : (
@@ -335,7 +449,7 @@ export const StatsPage: React.FC = () => {
                 <span>NHẬP DỮ LIỆU (JSON)</span>
                 <Upload className="w-5.5 h-5.5" stopColor="#4f46e5" />
               </button>
-              
+
               <input
                 ref={fileInputRef}
                 type="file"
@@ -347,9 +461,8 @@ export const StatsPage: React.FC = () => {
 
             {/* Feedback Sync Status */}
             {importStatus && (
-              <div className={`p-4 rounded-xl text-xs font-bold ${
-                importStatus.success ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-800'
-              }`}>
+              <div className={`p-4 rounded-xl text-xs font-bold ${importStatus.success ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-800'
+                }`}>
                 {importStatus.message}
               </div>
             )}
